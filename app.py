@@ -5,6 +5,9 @@ import urllib.parse
 
 SHEET_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?output=csv"  # גיליון Alcohol
 MIXERS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?gid=1444549454&single=true&output=csv"
+# Analytics sheet — עדכן לURL של גיליון Analytics לאחר פרסום
+ANALYTICS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?output=csv"
+ANALYTICS_WRITE_URL = "https://script.google.com/macros/s/AKfycbxz57lULFP6ClP-Gabdn71dlwVvI-YIF6LCx81guHLzM4efv8c8q_0yualR33bHxR1x8g/exec"
 
 st.set_page_config(page_title="יועץ אלכוהול לחתונה", page_icon="🥂", layout="centered")
 
@@ -511,9 +514,11 @@ def fmt_b(row):
     name = he if he and str(he).strip() else row['brand']
     return f"[{row['level']}] {name}  (₪{row['price']:.0f})"
 
-def calc_item(df, cat, brand, pct, guests):
+def calc_item(df, cat, brand, pct, guests, hours=4):
     d  = math.ceil(nd(guests) * pct / 100)
-    ml = d * CUPS[cat] * ML_CUP[cat] * SAFETY
+    # כמות גדלה לפי שעות: 4 שעות = בסיס, כל שעה נוספת +15%
+    hours_factor = 1.0 + max(0, hours - 4) * 0.15
+    ml = d * CUPS[cat] * ML_CUP[cat] * SAFETY * hours_factor
     p  = get_prod(df, cat, brand)
     n  = max(1, math.ceil(ml / int(p['volume_ml'])))
     return {
@@ -522,7 +527,7 @@ def calc_item(df, cat, brand, pct, guests):
         "level": p.get('level',''),
         "vol":int(p['volume_ml']),"n":n,
         "ppb":p['price'],"total":p['price']*n,
-        "drinkers":d,"pct":pct
+        "drinkers":d,"pct":pct,"hours":hours
     }
 
 def auto_rec(df, guests, style, active_cats):
@@ -596,6 +601,8 @@ def ss():
         "show_flav":False,"show_sp":False,
         "venue_map":{},
     "energy_choice":"XL",
+    "hours":4,
+    "_counted":False,
     }
     for k,v in defs.items():
         if k not in st.session_state:
@@ -759,6 +766,22 @@ for col, cat in zip(cc, ["Vodka","Whiskey","Tequila","Anis"]):
             st.session_state.rec.pop(cat, None)
             st.session_state.generated = False
 
+# שעות אירוע
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div class="sec-title" style="margin-bottom:.3rem">⏱️ כמה שעות האירוע?</div>', unsafe_allow_html=True)
+h_val = st.session_state.get("hours", 4)
+hc1,hc2,hc3 = st.columns([1,3,1])
+with hc1:
+    if st.button("➖", key="hm") and h_val > 3:
+        st.session_state.hours = h_val - 1; st.rerun()
+with hc2:
+    h_pct = (h_val - 4) * 15
+    h_note = "בסיס" if h_val == 4 else f"+{h_pct}% כמות"
+    st.markdown(f'<div class="nbox" style="margin:0"><b>{h_val} שעות</b> · {h_note}</div>', unsafe_allow_html=True)
+with hc3:
+    if st.button("➕", key="hp") and h_val < 10:
+        st.session_state.hours = h_val + 1; st.rerun()
+
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -771,6 +794,7 @@ if st.button("✨ הפק המלצה מיידית", key="gen"):
         st.session_state.specials = []
         st.session_state.edit_open = None
         st.session_state.generated = True
+        st.session_state._counted  = False  # reset for new session
         st.rerun()
 
 # ══════════════════════════════════════
@@ -786,13 +810,33 @@ if st.session_state.generated and st.session_state.rec:
     mixer_cups = {}
     share_lines = [f"🥂 *רשימת אלכוהול לחתונה*", f"👥 {guests} אורחים | {nd(guests)} שותים", ""]
 
+    # ── Counter: רישום שקט ב-Google Sheets ──
+    if not st.session_state.get("_counted", False):
+        try:
+            import datetime, threading, urllib.request as _ur
+            ts      = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            style_v = st.session_state.get("style","מאוזן")
+            guests_v= str(st.session_state.get("guests", 0))
+            url     = (ANALYTICS_WRITE_URL +
+                       f"?ts={urllib.parse.quote(ts)}"
+                       f"&event=generate"
+                       f"&style={urllib.parse.quote(style_v)}"
+                       f"&guests={guests_v}")
+            # שליחה ברקע — לא מאט את האפליקציה
+            def _send(u):
+                try: _ur.urlopen(u, timeout=4)
+                except: pass
+            threading.Thread(target=_send, args=(url,), daemon=True).start()
+            st.session_state._counted = True
+        except: pass
+
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sec">🍾 ההמלצה שלך</div>', unsafe_allow_html=True)
 
     # ── אלכוהול עיקרי ──
     for cat in list(rec.keys()):
         info = rec[cat]
-        item = calc_item(df, cat, info["brand"], info["pct"], guests)
+        item = calc_item(df, cat, info["brand"], info["pct"], guests, st.session_state.get("hours",4))
         total_alc += item["total"]
         share_lines.append(f"{CAT_EMJ[cat]} {item['brand_he']}: {item['n']} בקבוקים (₪{item['total']:.0f})")
 
@@ -886,7 +930,7 @@ if st.session_state.generated and st.session_state.rec:
     EXTRA_LBL = {"Vodka":"וודקה בטעמים 🍹","Whiskey":"וויסקי נוסף 🥃","Tequila":"טקילה נוספת 🌵","Anis":"ארק נוסף 🌿"}
     for idx,ve in enumerate(st.session_state.extras):
         cat_e = ve.get("cat","Vodka")
-        it    = calc_item(df, cat_e, ve["brand"], ve["pct"], guests)
+        it    = calc_item(df, cat_e, ve["brand"], ve["pct"], guests, st.session_state.get("hours",4))
         total_alc += it["total"]
         share_lines.append(f"➕ {it['brand_he']}: {it['n']} בקבוקים (₪{it['total']:.0f})")
         lvl_key = it["level"].lower() if it["level"] else "basic"
@@ -908,7 +952,7 @@ if st.session_state.generated and st.session_state.rec:
 
     # ── specials ──
     for idx,sp in enumerate(st.session_state.specials):
-        it = calc_item(df, sp["category"], sp["brand"], sp["pct"], guests)
+        it = calc_item(df, sp["category"], sp["brand"], sp["pct"], guests, st.session_state.get("hours",4))
         total_alc += it["total"]
         share_lines.append(f"👑 {it['brand_he']}: {it['n']} בקבוקים (₪{it['total']:.0f})")
         st.markdown(f"""
@@ -1083,6 +1127,29 @@ if st.session_state.generated and st.session_state.rec:
           <div class="total-main">₪{total_cost:,.0f}</div>
           <div class="total-sub">{' · '.join(sub_parts)}</div>
         </div>""", unsafe_allow_html=True)
+
+    # ══ FAQ ══
+    st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+    with st.expander("❓ שאל את הבר — שאלות נפוצות"):
+        faqs = [
+            ("כמה וודקה לחתונה עם 200 אורחים?",
+             "עם 200 אורחים כ-120 שותים. אם 40% שותים וודקה (~48 איש) לאירוע של 4 שעות — כ-7-8 בקבוקי ליטר. הפעל את החישוב עם 200 אורחים וסגנון מאוזן לתוצאה מדויקת."),
+            ("האם עדיף לקנות בקבוקי ליטר או 700 מ"ל?",
+             "בקבוקי ליטר כמעט תמיד משתלמים יותר מבחינת מחיר למ"ל. ה-700 מ"ל שימושי יותר לוודקות בטעמים או לשולחנות ספציפיים."),
+            ("כמה מרווח ביטחון להוסיף?",
+             "האפליקציה כוללת 10% מרווח אוטומטי. לחתונות גדולות מעל 300 אורחים מומלץ להוסיף עוד 5-10% ידנית."),
+            ("מה ההבדל בין Basic לPremium?",
+             "Basic = מותגים כמו פינלנדיה, ג'וני ווקר רד — איכות טובה במחיר נגיש. Premium = בלוגה, גריי גוס, בלאק לייבל — מותגים יוקרתיים לאירועים מובחרים."),
+            ("האם לחשב מיקסרים כחלק מהתקציב?",
+             "כן! מיקסרים יכולים להוסיף 15-25% לעלות הכוללת. האפליקציה מחשבת זאת אוטומטית. אם האולם מספק חלק מהם — סמן 'האולם מביא' להפחתה."),
+            ("מתי הזמן הנכון לקנות?",
+             "אלכוהול: 1-2 חודשים לפני — תמיד יש מקום לאחסן ומחירים יציבים. מיקסרים: שבוע לפני — פחית טרייה יותר. קרח: יום לפני / ביום החתונה."),
+            ("כמה כוסות שותה אדם ממוצע בחתונה?",
+             "2.5-3 כוסות בממוצע לאירוע של 4 שעות. האפליקציה משתמשת בנתון זה. לאירוע ארוך יותר — הגדל את מספר השעות בהגדרות."),
+        ]
+        for q, a in faqs:
+            st.markdown(f"**🔹 {q}**")
+            st.markdown(f"<div style='color:var(--text-mid);font-size:.85rem;margin-bottom:.8rem;padding-right:.5rem'>{a}</div>", unsafe_allow_html=True)
 
     # ══ שיתוף ══
     import json as _json
