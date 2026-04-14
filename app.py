@@ -4,9 +4,7 @@ import math
 import urllib.parse
 
 SHEET_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?output=csv"  # גיליון Alcohol
-# כדי לקבל URL של גיליון Mixers:
-# פתח את הגיליון Mixers → File → Share → Publish to web → CSV → העתק URL
-MIXERS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?gid=1444549454&single=true&output=csv"  # ← החלף בURL של גיליון Mixers
+MIXERS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?gid=1444549454&single=true&output=csv"
 
 st.set_page_config(page_title="יועץ אלכוהול לחתונה", page_icon="🥂", layout="centered")
 
@@ -441,9 +439,9 @@ def load_mixers():
         mx.columns = mx.columns.str.strip()
         for col in mx.select_dtypes(include='object').columns:
             mx[col] = mx[col].str.strip()
-        for col in ['price_per_unit','unit_ml']:
+        for col in ['price_per_unit','unit_ml','price_per_crate','crate_size']:
             if col in mx.columns:
-                mx[col] = pd.to_numeric(mx[col].astype(str).str.strip(), errors='coerce')
+                mx[col] = pd.to_numeric(mx[col].astype(str).str.strip(), errors='coerce').fillna(0)
         return mx, None
     except Exception as e:
         return None, str(e)
@@ -536,35 +534,51 @@ def auto_rec(df, guests, style, active_cats):
             rec[cat] = {"brand":b['brand'],"pct":cfg["dist"].get(cat,20)}
     return rec
 
-def mixer_calc(cups_per_mixer, mx_df, venue_map):
+def mixer_calc(cups_per_mixer, mx_df, venue_map, energy_choice="XL"):
     """
     cups_per_mixer: {mixer_key: num_cups}
     mx_df: mixers dataframe
-    venue_map: {mixer_key: bool} — האם האולם מביא
+    venue_map: {mixer_key: bool}
+    energy_choice: "XL" or "Blue"
     Returns list of mixer result dicts
     """
     results = []
     if mx_df is None or mx_df.empty:
         return results
     for _, row in mx_df.iterrows():
-        key = str(row.get('mixer_key','')).strip().lower()
+        key  = str(row.get('mixer_key','')).strip().lower()
+        name = str(row.get('name_he', key)).strip()
+        # לאנרגי — רק הסוג שנבחר
+        if key == "energy":
+            if name != energy_choice:
+                continue
         if key not in cups_per_mixer:
             continue
-        cups   = cups_per_mixer[key]
-        tot_ml = cups * MIX_ML
-        unit   = int(row.get('unit_ml', 500))
-        units  = math.ceil(tot_ml / unit)
-        ppu    = float(row.get('price_per_unit', 0))
-        cost   = units * ppu
+        cups       = cups_per_mixer[key]
+        tot_ml     = cups * MIX_ML
+        unit_ml    = int(row.get('unit_ml', 250))
+        units      = math.ceil(tot_ml / unit_ml)
+        crate_size = int(row.get('crate_size', 12)) or 12
+        crates     = math.ceil(units / crate_size)
+        ppc        = float(row.get('price_per_crate', 0))
+        ppu        = float(row.get('price_per_unit', 0))
+        # חשב עלות: אם יש מחיר לארגז — השתמש בו, אחרת חשב לפי יחידה
+        if ppc > 0:
+            cost = crates * ppc
+        else:
+            cost = units * ppu
         by_venue = venue_map.get(key, False)
         results.append({
-            "key":    key,
-            "name":   str(row.get('name_he', key)),
-            "units":  units,
-            "unit_ml":unit,
-            "ppu":    ppu,
-            "cost":   cost,
-            "by_venue": by_venue,
+            "key":        key,
+            "name":       name,
+            "units":      units,
+            "unit_ml":    unit_ml,
+            "crate_size": crate_size,
+            "crates":     crates,
+            "ppu":        ppu,
+            "ppc":        ppc,
+            "cost":       cost,
+            "by_venue":   by_venue,
         })
     return results
 
@@ -581,6 +595,7 @@ def ss():
         "edit_open":None,
         "show_flav":False,"show_sp":False,
         "venue_map":{},
+    "energy_choice":"XL",
     }
     for k,v in defs.items():
         if k not in st.session_state:
@@ -972,7 +987,20 @@ if st.session_state.generated and st.session_state.rec:
     if mixer_cups and mx_df is not None and not mx_df.empty:
         st.markdown('<div class="sec">🧃 מיקסרים</div>', unsafe_allow_html=True)
 
-        mix_results = mixer_calc(mixer_cups, mx_df, st.session_state.venue_map)
+        # בחירת סוג אנרגי
+        ec1, ec2 = st.columns([2,3])
+        with ec1:
+            st.markdown('<div style="color:var(--text-mid);font-size:.85rem;padding-top:.4rem">⚡ סוג אנרגי:</div>', unsafe_allow_html=True)
+        with ec2:
+            energy_opts = ["XL","Blue"]
+            cur_e = st.session_state.get("energy_choice","XL")
+            new_e = st.radio("סוג אנרגי", energy_opts, index=energy_opts.index(cur_e),
+                             horizontal=True, key="energy_radio", label_visibility="collapsed")
+            if new_e != cur_e:
+                st.session_state.energy_choice = new_e; st.rerun()
+
+        mix_results = mixer_calc(mixer_cups, mx_df, st.session_state.venue_map,
+                                 energy_choice=st.session_state.get("energy_choice","XL"))
         CRATE_SIZE  = {"energy":24,"cranberry":12,"russian":12,"lemonade":12}
 
         st.markdown('<div class="mix-wrap"><div class="mix-hdr">🧃 אומדן מיקסרים</div>', unsafe_allow_html=True)
