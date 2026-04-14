@@ -701,6 +701,7 @@ def ss():
     "energy_choice":"XL",
     "hours":4,
     "_counted":False,
+    "couple_name":"",
     }
     for k,v in defs.items():
         if k not in st.session_state:
@@ -867,6 +868,16 @@ for col, cat in zip(cc, ["Vodka","Whiskey","Tequila","Anis"]):
             st.session_state.rec.pop(cat, None)
             st.session_state.generated = False
 
+# שם הזוג (אופציונלי)
+st.markdown("<br>", unsafe_allow_html=True)
+couple_input = st.text_input(
+    "💍 שם הזוג (אופציונלי)",
+    value=st.session_state.get("couple_name",""),
+    placeholder="לדוגמה: דנה ועמית",
+    key="couple_input"
+)
+st.session_state.couple_name = couple_input
+
 # שעות אירוע
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="sec-title" style="margin-bottom:.3rem">⏱️ כמה שעות האירוע?</div>', unsafe_allow_html=True)
@@ -976,7 +987,9 @@ if st.session_state.generated and st.session_state.rec:
     total_alc  = 0.0
     total_mix  = 0.0
     mixer_cups = {}
-    share_lines = [f"🥂 *רשימת אלכוהול לחתונה*", f"👥 {guests} אורחים | {nd(guests)} שותים", ""]
+    _couple = st.session_state.get("couple_name","").strip()
+    _title  = f"🥂 *רשימת האלכוהול של {_couple}*" if _couple else "🥂 *רשימת אלכוהול לחתונה*"
+    share_lines = [_title, f"👥 {guests} אורחים | {nd(guests)} שותים", ""]
 
     # ── Counter: רישום שקט ב-Google Sheets ──
     if not st.session_state.get("_counted", False):
@@ -1267,6 +1280,31 @@ if st.session_state.generated and st.session_state.rec:
     # שמור מצב אוטומטית
     save_state()
 
+    # ══ ברכה אישית ══
+    couple = st.session_state.get("couple_name","").strip()
+    if couple:
+        st.markdown(f"""
+        <div style="text-align:center;padding:1.2rem .5rem .5rem">
+          <div style="font-family:'Dancing Script',cursive;font-size:1.6rem;
+               color:var(--gold);line-height:1.3;animation:fadeDown .6s ease both">
+            מזל טוב {couple}! 💍
+          </div>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
+               font-size:1rem;color:var(--text-mid);margin-top:.4rem">
+            הרשימה שלכם מוכנה — שיהיה לכם ערב בלתי נשכח 🥂
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="text-align:center;padding:.8rem .5rem .3rem">
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
+               font-size:1rem;color:var(--text-mid)">
+            מזל טוב! שיהיה לכם ערב בלתי נשכח 🥂
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
     # ══ סה"כ ══
     total_cost = total_alc + total_mix
     share_lines.append(f"\n💰 *אלכוהול: ₪{total_alc:,.0f}*")
@@ -1365,13 +1403,47 @@ if st.session_state.generated and st.session_state.rec:
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="div"></div>', unsafe_allow_html=True)
-st.markdown('''
-<div style="text-align:center;padding:.5rem 0 1rem">
-  <div style="font-family:'Dancing Script',cursive;font-size:1.1rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">
+
+# ══ אודות ══
+with st.expander("👋 אודות היועץ"):
+    st.markdown("""
+    <div style="direction:rtl;padding:.5rem 0">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;
+           font-weight:700;color:var(--gold);margin-bottom:.8rem">
+        היי, אני בר אנקרי 👋
+      </div>
+      <div style="color:var(--text-mid);font-size:.88rem;line-height:1.8">
+        <p>דאטה אנליסט שאוהב לפתור בעיות אמיתיות עם נתונים.</p>
+        <p>בניתי את היועץ הזה מתוך צורך אמיתי — כשראיתי כמה זוגות מתחתנים
+        מתבלבלים עם שאלת האלכוהול לחתונה.<br>
+        <em>כמה לקנות? מה לקנות? כמה זה עולה?</em></p>
+        <p>החלטתי לפתור את זה בצורה פשוטה וחכמה — כלי שנותן המלצה מדויקת
+        תוך שניות, מבוסס על ניסיון אמיתי וניתוח נתונים.</p>
+        <p>הכלי חינמי לחלוטין ונועד לעזור לכם להיכנס לחתונה רגועים —
+        לפחות בצד האלכוהול 🥂</p>
+        <p style="color:var(--gold);font-style:italic">מזל טוב מראש! 💍</p>
+      </div>
+      <div style="margin-top:1rem">
+        <a href="https://www.linkedin.com/in/bar-ankri-a92672383"
+           target="_blank"
+           style="display:inline-flex;align-items:center;gap:.4rem;
+                  background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);
+                  color:#5a9fd4;border-radius:8px;padding:.45rem .9rem;
+                  font-size:.83rem;font-weight:700;text-decoration:none">
+          🔗 LinkedIn — בר אנקרי
+        </a>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("""
+<div style="text-align:center;padding:.8rem 0 1.5rem">
+  <div style="font-family:'Dancing Script',cursive;font-size:1rem;
+       color:var(--rose);opacity:.6;margin-bottom:.3rem">
     נוצר בלב ❤ על ידי בר אנקרי
   </div>
-  <div style="color:var(--text-dim);font-size:.7rem;letter-spacing:.03em">
-    מחירים מבוססים על מחירון קמעונאי · 60% שותים · 2.5 כוסות לאדם · 10% מרווח
+  <div style="color:var(--text-dim);font-size:.68rem;letter-spacing:.03em">
+    60% שותים · 2.5 כוסות לאדם · 10% מרווח ביטחון
   </div>
 </div>
-''', unsafe_allow_html=True)
+""", unsafe_allow_html=True)
