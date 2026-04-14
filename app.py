@@ -12,25 +12,28 @@ st.set_page_config(page_title="יועץ אלכוהול לחתונה", page_icon=
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Frank+Ruhl+Libre:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Heebo:wght@300;400;600;700;900&family=Dancing+Script:wght@600;700&display=swap');
 
 :root {
-  --gold: #e8c97e;
-  --gold2: #c9a84c;
-  --copper: #c47c3a;
-  --bg: #07070d;
-  --bg2: rgba(255,255,255,0.04);
-  --bg3: rgba(255,255,255,0.07);
-  --glass: rgba(20,18,35,0.85);
-  --border: rgba(232,201,126,0.22);
-  --border-dim: rgba(255,255,255,0.08);
-  --text: #ede5d5;
-  --text-mid: #9a8f7e;
-  --text-dim: #5a5248;
-  --green: #4ade80;
-  --red: #f87171;
-  --blue: #60c8f5;
-  --purple: #c084fc;
+  /* Wedding palette — ivory, champagne, rose gold, sage */
+  --gold: #d4a96a;
+  --gold2: #b8883e;
+  --rose: #c9838a;
+  --sage: #8aab8a;
+  --blush: rgba(210,170,170,0.18);
+  --bg: #0e0b0b;
+  --bg2: rgba(255,248,245,0.04);
+  --bg3: rgba(255,248,245,0.07);
+  --glass: rgba(22,15,15,0.88);
+  --border: rgba(212,169,106,0.25);
+  --border-dim: rgba(255,240,230,0.08);
+  --text: #f5ede3;
+  --text-mid: #a8957e;
+  --text-dim: #5c4e42;
+  --green: #7ec8a0;
+  --red: #e08080;
+  --blue: #90c8d8;
+  --purple: #c8a0c8;
   --r: 18px;
   --r-sm: 12px;
 }
@@ -92,7 +95,7 @@ html, body, [class*="css"] {
   margin-bottom: .8rem;
 }
 .hero-title {
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(2rem, 6vw, 2.8rem);
   font-weight: 900;
   color: var(--gold);
@@ -126,7 +129,7 @@ html, body, [class*="css"] {
 
 /* ── Section title ── */
 .sec-title {
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 1rem; font-weight: 700;
   color: var(--gold);
   margin-bottom: 1rem;
@@ -188,11 +191,11 @@ html, body, [class*="css"] {
 
 .r-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .9rem; }
 .r-left {}
-.r-cat  { font-family: 'Frank Ruhl Libre', serif; font-size: 1.05rem; font-weight: 700; color: var(--gold); }
+.r-cat  { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 700; color: var(--gold); }
 .r-brand{ font-size: .8rem; color: var(--text-mid); margin-top: .15rem; }
 .r-right{ text-align: center; }
 .r-num  {
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 2.4rem; font-weight: 900; color: #fff;
   line-height: 1;
 }
@@ -281,7 +284,7 @@ html, body, [class*="css"] {
   font-size: 5rem; opacity: .04;
 }
 .total-main {
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(2.4rem, 8vw, 3.2rem);
   font-weight: 900; color: var(--gold);
   line-height: 1;
@@ -295,7 +298,7 @@ html, body, [class*="css"] {
 
 /* ── Divider ── */
 .div { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 1.2rem 0; }
-.sec { font-family: 'Frank Ruhl Libre', serif; font-size: 1.15rem; color: var(--gold); margin: 1.3rem 0 .6rem; }
+.sec { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; color: var(--gold); margin: 1.3rem 0 .6rem; }
 
 /* ── Share buttons ── */
 .wa-btn  { display: flex; align-items: center; justify-content: center; gap: .5rem; background: #25D366; color: #fff; border: none; border-radius: var(--r); padding: .8rem; font-family: 'Heebo', sans-serif; font-weight: 800; font-size: .92rem; text-decoration: none; width: 100%; }
@@ -391,11 +394,13 @@ input[type="number"]::-webkit-outer-spin-button {
 </style>
 
 <div class="bg-wrap">
-  <div class="particle" style="width:3px;height:3px;left:15%;animation-duration:12s;animation-delay:0s"></div>
-  <div class="particle" style="width:2px;height:2px;left:35%;animation-duration:18s;animation-delay:3s"></div>
-  <div class="particle" style="width:4px;height:4px;left:60%;animation-duration:14s;animation-delay:6s"></div>
-  <div class="particle" style="width:2px;height:2px;left:80%;animation-duration:20s;animation-delay:1s"></div>
-  <div class="particle" style="width:3px;height:3px;left:50%;animation-duration:16s;animation-delay:9s"></div>
+  <!-- petals -->
+  <div class="particle" style="width:3px;height:3px;left:10%;animation-duration:14s;animation-delay:0s;background:#d4a96a"></div>
+  <div class="particle" style="width:2px;height:2px;left:28%;animation-duration:20s;animation-delay:2s;background:#c9838a"></div>
+  <div class="particle" style="width:4px;height:4px;left:50%;animation-duration:16s;animation-delay:5s;background:#d4a96a"></div>
+  <div class="particle" style="width:2px;height:2px;left:72%;animation-duration:22s;animation-delay:1s;background:#c9838a"></div>
+  <div class="particle" style="width:3px;height:3px;left:88%;animation-duration:18s;animation-delay:8s;background:#8aab8a"></div>
+  <div class="particle" style="width:2px;height:2px;left:40%;animation-duration:24s;animation-delay:12s;background:#d4a96a"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -640,9 +645,12 @@ if err or df is None:
 st.markdown("""
 <div class="hero">
   <div class="hero-glow"></div>
+  <div class="hero-ornament">❧</div>
   <div class="hero-badge">✦ לחתונה מושלמת ✦</div>
-  <div class="hero-title">🥂 יועץ האלכוהול</div>
+  <div class="hero-title">יועץ האלכוהול לחתונה</div>
+  <div class="hero-title-en">Wedding Bar Advisor</div>
   <div class="hero-sub">3 שאלות · המלצה מיידית · ניתן לעריכה מלאה</div>
+  <div class="hero-divider"><span>🥂</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -667,14 +675,16 @@ if not st.session_state.get("_storage_read"):
     </script>
     """, height=0)
 
-with st.expander("🔄 סטטוס נתונים", expanded=False):
-    lvls = sorted(df['level'].unique())
-    st.success(f"✅ {len(df)} מוצרים | רמות: {', '.join(lvls)}")
-    has_he = 'brand_he' in df.columns and df['brand_he'].notna().any()
-    has_mx = mx_df is not None and not mx_df.empty
-    st.info(f"שמות עברית: {'✅' if has_he else '❌'} | מיקסרים: {'✅' if has_mx else '❌'}")
-    if st.button("🔄 רענן נתונים", key="ref"):
-        st.cache_data.clear(); st.rerun()
+# סטטוס נתונים מוסתר — רק לצורך דיבוג
+if st.session_state.get("_dev_mode"):
+    with st.expander("🔄 סטטוס נתונים", expanded=False):
+        lvls = sorted(df['level'].unique())
+        st.success(f"✅ {len(df)} מוצרים | רמות: {', '.join(lvls)}")
+        has_he = 'brand_he' in df.columns and df['brand_he'].notna().any()
+        has_mx = mx_df is not None and not mx_df.empty
+        st.info(f"שמות עברית: {'✅' if has_he else '❌'} | מיקסרים: {'✅' if has_mx else '❌'}")
+        if st.button("🔄 רענן נתונים", key="ref"):
+            st.cache_data.clear(); st.rerun()
 
 # ══════════════════════════════════════
 # INPUT
@@ -1088,4 +1098,13 @@ if st.session_state.generated and st.session_state.rec:
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="div"></div>', unsafe_allow_html=True)
-st.markdown('<div style="text-align:center;color:var(--text-dim);font-size:.72rem;">מחירים על בסיס בנא משקאות · 60% שותים · 2.5 כוסות לאדם · 10% מרווח ביטחון</div>', unsafe_allow_html=True)
+st.markdown('''
+<div style="text-align:center;padding:.5rem 0 1rem">
+  <div style="font-family:'Dancing Script',cursive;font-size:1.1rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">
+    נוצר בלב ❤ על ידי בר אנקרי
+  </div>
+  <div style="color:var(--text-dim);font-size:.7rem;letter-spacing:.03em">
+    מחירים על בסיס בנא משקאות · 60% שותים · 2.5 כוסות לאדם · 10% מרווח
+  </div>
+</div>
+''', unsafe_allow_html=True)
