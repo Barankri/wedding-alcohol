@@ -853,73 +853,63 @@ if st.session_state.generated and st.session_state.rec:
         </div>
         """, unsafe_allow_html=True)
 
-        # ── כפתורי עריכה — שורה אחת עם CSS grid ──
-        st.markdown('''<style>
-        div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div > div > div > div > button {
-          min-height:42px !important; padding:.4rem .3rem !important; font-size:.78rem !important;
-        }
-        </style>''', unsafe_allow_html=True)
-        ea,eb,ec_ = st.columns([2,2,1])
-        with ea:
-            st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-            if st.button(f"✏️ שנה מותג", key=f"eb_{cat}"):
-                st.session_state.edit_open = f"brand_{cat}" if st.session_state.edit_open != f"brand_{cat}" else None
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        with eb:
-            st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-            if st.button(f"📊 {info['pct']}% שותים", key=f"ep_{cat}"):
-                st.session_state.edit_open = f"pct_{cat}" if st.session_state.edit_open != f"pct_{cat}" else None
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        with ec_:
-            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            if st.button("🗑️", key=f"ed_{cat}"):
-                del st.session_state.rec[cat]
-                if cat in st.session_state.active_cats: st.session_state.active_cats.remove(cat)
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+        # ── כפתור ⚙️ אחד — פותח פאנל עריכה ──
+        is_open = st.session_state.edit_open == f"edit_{cat}"
+        btn_lbl = f"✕ סגור" if is_open else f"⚙️ ערוך"
+        btn_cls = "btn-ghost" if not is_open else "btn-ghost"
+        st.markdown(f'<div class="{btn_cls}">', unsafe_allow_html=True)
+        if st.button(btn_lbl, key=f"gear_{cat}", use_container_width=True):
+            st.session_state.edit_open = f"edit_{cat}" if not is_open else None
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── Brand picker — radio list (mobile friendly) ──
-        if st.session_state.edit_open == f"brand_{cat}":
-            st.markdown(f'''
-            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
-                 padding:1rem 1.1rem;margin-bottom:.6rem">
-              <div style="width:36px;height:3px;background:var(--border-dim);border-radius:2px;margin:0 auto .8rem"></div>
-              <div style="font-family:Cormorant Garamond,serif;font-size:1rem;color:var(--gold);
-                   text-align:center;margin-bottom:.7rem">✏️ שנה מותג — {CAT_HE[cat]}</div>
-            ''', unsafe_allow_html=True)
+        # ── פאנל עריכה מאוחד ──
+        if st.session_state.edit_open == f"edit_{cat}":
+            st.markdown('<div class="edit-pnl">', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-family:Cormorant Garamond,serif;font-size:.95rem;color:var(--gold);margin-bottom:.8rem;text-align:center">⚙️ עריכת {CAT_HE[cat]}</div>', unsafe_allow_html=True)
+
+            # מותג
+            st.markdown('<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.3rem">✏️ מותג</div>', unsafe_allow_html=True)
             bdf  = get_brands(df, cat)
             opts = bdf['brand'].tolist()
             cur  = opts.index(info["brand"]) if info["brand"] in opts else 0
-            # Radio styled as list
-            st.markdown('<style>[data-testid="stRadio"] label{font-size:.85rem!important;padding:.5rem .3rem!important;}</style>', unsafe_allow_html=True)
-            chosen = st.radio(
-                "בחר מותג:",
+            chosen = st.selectbox(
+                "מותג",
                 options=opts,
                 index=cur,
                 format_func=lambda x, d=bdf: f"{brand_display(d[d['brand']==x].iloc[0])}  [{d[d['brand']==x].iloc[0]['level']}]  ₪{d[d['brand']==x].iloc[0]['price']:.0f}",
-                key=f"radio_{cat}",
+                key=f"sel_{cat}",
                 label_visibility="collapsed"
             )
-            if st.button("✅ אשר בחירה", key=f"ok_b_{cat}"):
-                st.session_state.rec[cat]["brand"] = chosen
-                st.session_state.edit_open = None; st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
-        # Pct edit
-        if st.session_state.edit_open == f"pct_{cat}":
-            st.markdown('<div class="edit-pnl">', unsafe_allow_html=True)
+            # %
+            st.markdown('<div style="font-size:.78rem;color:var(--text-dim);margin:.6rem 0 .3rem">📊 % שותים</div>', unsafe_allow_html=True)
             cur_pct = info["pct"]
-            new_d   = math.ceil(nd(guests) * cur_pct / 100)
-            st.markdown(f'<div class="nbox" style="margin:0 0 .5rem">{CAT_HE[cat]} — <b>{cur_pct}%</b> · {new_d} אנשים</div>', unsafe_allow_html=True)
-            new_pct = st.number_input("% מהשותים", 5, 80, cur_pct, 5, key=f"pct_inp_{cat}", label_visibility="collapsed")
-            if new_pct != cur_pct:
-                st.session_state.rec[cat]["pct"] = int(new_pct); st.rerun()
-            st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-            if st.button("✅ סגור", key=f"ok_p_{cat}"):
-                st.session_state.edit_open = None; st.rerun()
-            st.markdown('</div></div>', unsafe_allow_html=True)
+            new_pct = st.number_input("אחוז שותים", 5, 80, cur_pct, 5,
+                                       key=f"pct_inp_{cat}", label_visibility="collapsed")
+            new_d = math.ceil(nd(guests) * new_pct / 100)
+            st.markdown(f'<div class="nbox" style="margin:.2rem 0 .6rem">{new_d} אנשים ישתו {CAT_HE[cat]}</div>', unsafe_allow_html=True)
+
+            # כפתורי פעולה
+            ca_, cb_, cc_ = st.columns([3,3,2])
+            with ca_:
+                if st.button("✅ שמור", key=f"ok_{cat}", use_container_width=True):
+                    st.session_state.rec[cat]["brand"] = chosen
+                    st.session_state.rec[cat]["pct"]   = int(new_pct)
+                    st.session_state.edit_open = None; st.rerun()
+            with cb_:
+                st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+                if st.button("✕ ביטול", key=f"cancel_{cat}", use_container_width=True):
+                    st.session_state.edit_open = None; st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+            with cc_:
+                st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
+                if st.button("🗑️", key=f"del_{cat}", use_container_width=True):
+                    del st.session_state.rec[cat]
+                    if cat in st.session_state.active_cats: st.session_state.active_cats.remove(cat)
+                    st.session_state.edit_open = None; st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Extras ──
     EXTRA_LBL = {"Vodka":"וודקה בטעמים 🍹","Whiskey":"וויסקי נוסף 🥃","Tequila":"טקילה נוספת 🌵","Anis":"ארק נוסף 🌿"}
