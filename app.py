@@ -9,7 +9,7 @@ MIXERS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbn
 ANALYTICS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy5QV1mK8Tg8SGbnDBs005Re6LVTB_f4ZYjo9Vd8AmFkeh0pNZf4dKOzV9adzDn6SRIRwlNwyPlBFL/pub?output=csv"
 ANALYTICS_WRITE_URL = "https://script.google.com/macros/s/AKfycbxz57lULFP6ClP-Gabdn71dlwVvI-YIF6LCx81guHLzM4efv8c8q_0yualR33bHxR1x8g/exec"
 
-st.set_page_config(page_title="יועץ אלכוהול לחתונה", page_icon="🥂", layout="centered")
+st.set_page_config(page_title="יועץ האלכוהול", page_icon="🥂", layout="centered")
 
 st.markdown("""
 <style>
@@ -393,6 +393,99 @@ input[type="number"]::-webkit-outer-spin-button {
   cursor: pointer !important;
 }
 
+/* ── Welcome screen ── */
+.welcome-wrap {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  position: relative;
+}
+.welcome-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem,7vw,3.2rem);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold);
+  margin-bottom: .3rem;
+  animation: fadeDown .8s ease both;
+}
+.welcome-sub {
+  font-size: .9rem;
+  color: var(--text-dim);
+  margin-bottom: 2.5rem;
+  animation: fadeDown .8s .1s ease both;
+}
+.event-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 380px;
+  animation: fadeUp .8s .2s ease both;
+}
+.event-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-dim);
+  border-radius: 20px;
+  padding: 1.4rem 1.6rem;
+  cursor: pointer;
+  transition: all .25s;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: right;
+  position: relative;
+  overflow: hidden;
+}
+.event-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .25s;
+}
+.event-card:hover { transform: translateY(-2px); border-color: var(--border); }
+.event-card-wedding::before { background: linear-gradient(135deg,rgba(232,201,126,.08),transparent); }
+.event-card-henna::before   { background: linear-gradient(135deg,rgba(155,89,182,.1),transparent); }
+.event-card-bar::before     { background: linear-gradient(135deg,rgba(26,107,181,.1),transparent); }
+.event-card:hover::before   { opacity: 1; }
+.event-icon {
+  font-size: 2.2rem;
+  min-width: 50px;
+  text-align: center;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+.event-card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: .15rem;
+}
+.event-card-desc {
+  font-size: .8rem;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+/* ── Henna theme overrides ── */
+body.theme-henna {
+  --gold: #e67e22;
+  --rose: #9b59b6;
+  --bg: #0a0812;
+}
+/* ── Bar mitzva theme overrides ── */
+body.theme-barmitzvah {
+  --gold: #e8c97e;
+  --rose: #1a6bb5;
+  --bg: #07090f;
+}
+
 /* ── Wedding illustrations ── */
 .wedding-bar-svg { text-align:center; padding: 1.5rem 0 .5rem; opacity:.85; }
 .wedding-bar-svg svg { max-width: 280px; width: 90%; }
@@ -545,13 +638,73 @@ def load_mixers():
 # ══════════════════════════════════════
 # CONSTANTS
 # ══════════════════════════════════════
-DR_RATE = 0.60
+DR_RATE = 0.75  # fallback — נדרס ע"י get_dr_rate
 SAFETY  = 1.10
-CUPS    = {"Vodka":2.5,"Whiskey":2.5,"Tequila":3.0,"Anis":2.5}
+CUPS    = {"Vodka":3.0,"Whiskey":3.0,"Tequila":3.0,"Anis":3.0}  # בסיס, נדרס לפי אירוע
+def get_cups(event_key=None):
+    if event_key is None:
+        event_key = st.session_state.get("event_type","wedding") or "wedding"
+    return EVENT_CFG.get(event_key, EVENT_CFG["wedding"])["cups"]
 ML_CUP  = {"Vodka":50,"Whiskey":50,"Tequila":35,"Anis":50}
 MIX_ML  = 150
 
 CAT_HE  = {"Vodka":"וודקה 🍸","Whiskey":"וויסקי 🥃","Tequila":"טקילה 🌵","Anis":"ארק 🌿"}
+
+# ── הגדרות לפי סוג אירוע ──
+EVENT_CFG = {
+    "wedding": {
+        "name":"חתונה","emoji":"💍",
+        "dist":{"מאוזן":{"Vodka":40,"Whiskey":30,"Tequila":20,"Anis":10},
+                "חסכוני":{"Vodka":50,"Whiskey":25,"Tequila":15,"Anis":10},
+                "פרמיום":{"Vodka":35,"Whiskey":35,"Tequila":20,"Anis":10}},
+        "dr_by_size":{200:0.80, 300:0.75, 9999:0.70},
+        "cups":3.0,
+        "loading":["🥂 מכין את הבר המושלם לערב הגדול...",
+                   "💍 בוחר את המותגים הטובים ביותר...",
+                   "✨ כמעט מוכן לחתונה...",
+                   "🌹 מאזן את הבר שלכם..."],
+        "blessing":"מזל טוב! שיהיה לכם ערב בלתי נשכח 🥂",
+        "confetti":["#e8c97e","#c9838a","#8aab8a","#f5e6c8","#ffffff"],
+        "theme":{"bg":"#0e0b0b","gold":"#e8c97e","accent":"#c9838a","particle":"petal"},
+    },
+    "henna": {
+        "name":"חינה","emoji":"🌙",
+        "dist":{"מאוזן":{"Vodka":30,"Whiskey":25,"Tequila":10,"Anis":35},
+                "חסכוני":{"Vodka":35,"Whiskey":20,"Tequila":5,"Anis":40},
+                "פרמיום":{"Vodka":25,"Whiskey":30,"Tequila":10,"Anis":35}},
+        "dr_by_size":{200:0.80, 300:0.75, 9999:0.70},
+        "cups":3.0,
+        "loading":["🌙 אהלן וסהלן! מכין לכם לילה מושלם...",
+                   "✦ בוחר את הארק הכי טוב...",
+                   "🕌 מכין את הלילה שלכם...",
+                   "🌟 כמעט מוכן..."],
+        "blessing":"בשעה טובה! שתהיה חינה מהממת 🌙",
+        "confetti":["#9b59b6","#e67e22","#f39c12","#d4a96a","#ffffff"],
+        "theme":{"bg":"#0a0812","gold":"#e67e22","accent":"#9b59b6","particle":"star"},
+    },
+    "barmitzvah": {
+        "name":"בר/בת מצווה","emoji":"🎉",
+        "dist":{"מאוזן":{"Vodka":30,"Whiskey":50,"Tequila":10,"Anis":10},
+                "חסכוני":{"Vodka":30,"Whiskey":50,"Tequila":10,"Anis":10},
+                "פרמיום":{"Vodka":25,"Whiskey":60,"Tequila":10,"Anis":5}},
+        "dr_by_size":{200:0.60, 9999:0.55},
+        "cups":2.5,
+        "loading":["🎉 מכין את החגיגה...",
+                   "✡️ בוחר את הוויסקי הכי טוב...",
+                   "🎊 כמעט מוכן...",
+                   "💙 מאזן את הבר..."],
+        "blessing":"מזל טוב! שיהיה אירוע מושלם 🎉",
+        "confetti":["#1a6bb5","#ffffff","#e8c97e","#4ade80","#60a5fa"],
+        "theme":{"bg":"#07090f","gold":"#e8c97e","accent":"#1a6bb5","particle":"balloon"},
+    },
+}
+
+def get_dr_rate(event_key, guests):
+    cfg = EVENT_CFG.get(event_key, EVENT_CFG["wedding"])
+    for threshold, rate in sorted(cfg["dr_by_size"].items()):
+        if guests <= threshold:
+            return rate
+    return 0.70
 CAT_EMJ = {"Vodka":"🍸","Whiskey":"🥃","Tequila":"🌵","Anis":"🌿"}
 
 MIXER_EMJ = {"energy":"⚡","cranberry":"🫐","russian":"🫧","lemonade":"🍋"}
@@ -571,7 +724,11 @@ BADGE_MAP = {
 # ══════════════════════════════════════
 # HELPERS
 # ══════════════════════════════════════
-def nd(g): return math.ceil(g * DR_RATE)
+def nd(g, event_key=None):
+    if event_key is None:
+        event_key = st.session_state.get("event_type","wedding") or "wedding"
+    rate = get_dr_rate(event_key, g)
+    return math.ceil(g * rate)
 
 def best_brand(df, cat, levels, flavor="regular"):
     sub = df[(df['category']==cat)&(df['flavor_type']==flavor)&(df['level'].isin(levels))].copy()
@@ -613,10 +770,11 @@ def fmt_b(row):
     return f"[{row['level']}] {name}  (₪{row['price']:.0f})"
 
 def calc_item(df, cat, brand, pct, guests, hours=4):
-    d  = math.ceil(nd(guests) * pct / 100)
-    # כמות גדלה לפי שעות: 4 שעות = בסיס, כל שעה נוספת +15%
+    event_key = st.session_state.get("event_type","wedding") or "wedding"
+    d  = math.ceil(nd(guests, event_key) * pct / 100)
     hours_factor = 1.0 + max(0, hours - 4) * 0.15
-    ml = d * CUPS[cat] * ML_CUP[cat] * SAFETY * hours_factor
+    cups_val = get_cups(event_key)
+    ml = d * cups_val * ML_CUP[cat] * SAFETY * hours_factor
     p  = get_prod(df, cat, brand)
     n  = max(1, math.ceil(ml / int(p['volume_ml'])))
     return {
@@ -629,12 +787,14 @@ def calc_item(df, cat, brand, pct, guests, hours=4):
     }
 
 def auto_rec(df, guests, style, active_cats):
-    cfg = STYLE_CFG[style]
+    cfg       = STYLE_CFG[style]
+    event_key = st.session_state.get("event_type","wedding") or "wedding"
+    event_dist = EVENT_CFG[event_key]["dist"].get(style, EVENT_CFG[event_key]["dist"]["מאוזן"])
     rec = {}
     for cat in active_cats:
         b = best_brand(df, cat, cfg["levels"])
         if b is not None:
-            rec[cat] = {"brand":b['brand'],"pct":cfg["dist"].get(cat,20)}
+            rec[cat] = {"brand":b['brand'],"pct":event_dist.get(cat,20)}
     return rec
 
 def mixer_calc(cups_per_mixer, mx_df, venue_map, energy_choice="XL"):
@@ -763,20 +923,99 @@ if err or df is None:
 # ══════════════════════════════════════
 # HERO
 # ══════════════════════════════════════
-st.markdown("""
+# ── Apply theme based on event ──
+_evt = st.session_state.get("event_type","wedding") or "wedding"
+_theme_js = ""
+if _evt == "henna":
+    _theme_js = "document.body.classList.add('theme-henna');"
+elif _evt == "barmitzvah":
+    _theme_js = "document.body.classList.add('theme-barmitzvah');"
+if _theme_js:
+    st.components.v1.html(f"<script>{_theme_js}</script>", height=0)
+
+# ── Welcome screen — event selection ──
+if not st.session_state.get("event_type"):
+    st.markdown("""
+    <div class="welcome-wrap">
+      <div class="hero-glow"></div>
+      <div style="font-family:'Dancing Script',cursive;font-size:1rem;color:var(--rose);opacity:.6;margin-bottom:.4rem">
+        ✦ ברוכים הבאים ✦
+      </div>
+      <div class="welcome-title">יועץ האלכוהול</div>
+      <div class="welcome-sub">בחרו את סוג האירוע שלכם</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Wedding card
+    st.markdown("""
+    <div class="event-cards" style="margin:0 auto">
+    """, unsafe_allow_html=True)
+
+    c1 = st.container()
+    with c1:
+        st.markdown("""
+        <div class="event-card event-card-wedding">
+          <div class="event-icon">💍</div>
+          <div>
+            <div class="event-card-title">חתונה</div>
+            <div class="event-card-desc">וודקה · וויסקי · טקילה · ארק</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("💍 חתונה", key="evt_wedding", use_container_width=True):
+            st.session_state.event_type = "wedding"; st.rerun()
+
+    st.markdown("""
+        <div class="event-card event-card-henna">
+          <div class="event-icon">🌙</div>
+          <div>
+            <div class="event-card-title">חינה</div>
+            <div class="event-card-desc">ארק · וויסקי · וודקה · וייב מזרחי</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    if st.button("🌙 חינה", key="evt_henna", use_container_width=True):
+        st.session_state.event_type = "henna"; st.rerun()
+
+    st.markdown("""
+        <div class="event-card event-card-bar">
+          <div class="event-icon">🎉</div>
+          <div>
+            <div class="event-card-title">בר / בת מצווה</div>
+            <div class="event-card-desc">וויסקי · וודקה · קהל מעורב</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    if st.button("🎉 בר / בת מצווה", key="evt_bar", use_container_width=True):
+        st.session_state.event_type = "barmitzvah"; st.rerun()
+
+    st.stop()
+
+# ── Regular hero (after event chosen) ──
+_evt_cfg = EVENT_CFG.get(_evt, EVENT_CFG["wedding"])
+_evt_emoji = _evt_cfg["emoji"]
+_evt_name  = _evt_cfg["name"]
+
+st.markdown(f"""
 <div class="hero">
   <div class="hero-glow"></div>
   <div class="hero-ornament">❧</div>
-  <div class="hero-badge">✦ לחתונה מושלמת ✦</div>
-  <div class="hero-title">יועץ האלכוהול לחתונה</div>
-  <div class="hero-title-en">Wedding Bar Advisor</div>
+  <div class="hero-badge">✦ {_evt_name} ✦</div>
+  <div class="hero-title">יועץ האלכוהול</div>
+  <div class="hero-title-en">Bar Advisor {_evt_emoji}</div>
   <div class="hero-sub">3 שאלות · המלצה מיידית · ניתן לעריכה מלאה</div>
   <div class="hero-divider"><span>🥂</span></div>
-  <div style="margin-top:.3rem;opacity:.3;font-size:.8rem;letter-spacing:.4em;color:var(--rose)">
-    ✿ &nbsp; ✿ &nbsp; ✿
-  </div>
 </div>
 """, unsafe_allow_html=True)
+
+# כפתור "שנה אירוע"
+st.markdown('<div class="btn-ghost" style="margin-bottom:.5rem">', unsafe_allow_html=True)
+if st.button(f"← שנה סוג אירוע", key="change_event"):
+    st.session_state.event_type = None
+    st.session_state.generated  = False
+    st.session_state.rec        = {}
+    st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 # שחזור sessionStorage בטעינה ראשונה
 if not st.session_state.get("_storage_read"):
@@ -831,6 +1070,7 @@ with c2:
 
 n_d = nd(g)
 bpd = (st.session_state.budget / n_d) if (st.session_state.budget and n_d>0) else None
+n_d = nd(g)
 info_txt = f"👥 כ-<b>{n_d}</b> מתוך <b>{g}</b> שותים"
 if bpd: info_txt += f" &nbsp;·&nbsp; 💰 ₪<b>{bpd:.0f}</b> לשותה"
 st.markdown(f'<div class="ibox" style="margin:.5rem 0">{info_txt}</div>', unsafe_allow_html=True)
@@ -898,56 +1138,130 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── איור בר חתונה (empty state) ──
+_cur_evt = st.session_state.get("event_type","wedding") or "wedding"
 if not st.session_state.get("generated"):
-    st.markdown("""
-    <div class="wedding-bar-svg">
-      <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
-        <!-- טייבל -->
-        <rect x="30" y="120" width="240" height="8" rx="4" fill="#c9838a" opacity=".5"/>
-        <rect x="50" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
-        <rect x="242" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
-        <!-- בקבוק וודקה -->
-        <rect x="80" y="75" width="18" height="45" rx="5" fill="#d4a96a" opacity=".7"/>
-        <rect x="85" y="65" width="8" height="14" rx="3" fill="#d4a96a" opacity=".7"/>
-        <rect x="84" y="62" width="10" height="5" rx="2" fill="#b8883e"/>
-        <!-- בקבוק וויסקי -->
-        <rect x="115" y="80" width="22" height="40" rx="4" fill="#8aab8a" opacity=".65"/>
-        <rect x="121" y="68" width="10" height="16" rx="3" fill="#8aab8a" opacity=".65"/>
-        <rect x="120" y="64" width="12" height="6" rx="2" fill="#6a8a6a"/>
-        <!-- כוס יין -->
-        <path d="M160 120 L155 95 Q152 80 165 78 Q178 80 175 95 L170 120 Z" fill="#c9838a" opacity=".5"/>
-        <rect x="162" y="118" width="6" height="2" rx="1" fill="#c9838a" opacity=".4"/>
-        <ellipse cx="165" cy="120" rx="10" ry="2" fill="#c9838a" opacity=".3"/>
-        <!-- כוס שמפניה -->
-        <path d="M195 120 L192 100 Q190 85 198 83 Q206 85 204 100 L201 120 Z" fill="#d4a96a" opacity=".5"/>
-        <rect x="196" y="118" width="4" height="3" rx="1" fill="#d4a96a" opacity=".4"/>
-        <!-- טבעת -->
-        <circle cx="240" cy="108" r="10" fill="none" stroke="#d4a96a" stroke-width="2.5" opacity=".6"/>
-        <circle cx="240" cy="108" r="5" fill="#d4a96a" opacity=".3"/>
-        <!-- פרחים -->
-        <circle cx="60" cy="95" r="6" fill="#c9838a" opacity=".4"/>
-        <circle cx="52" cy="100" r="4" fill="#d4a96a" opacity=".35"/>
-        <circle cx="68" cy="100" r="4" fill="#8aab8a" opacity=".35"/>
-        <!-- כוכבי זהב -->
-        <text x="25" y="55" font-size="12" fill="#d4a96a" opacity=".4">✦</text>
-        <text x="265" y="65" font-size="10" fill="#c9838a" opacity=".4">✦</text>
-        <text x="145" y="45" font-size="14" fill="#d4a96a" opacity=".5">🥂</text>
-        <!-- כיתוב -->
-        <text x="150" y="22" text-anchor="middle" font-family="Cormorant Garamond, serif"
-              font-size="13" fill="#d4a96a" opacity=".7" font-style="italic">
-          הזן פרטים וקבל המלצה מיידית
-        </text>
-      </svg>
-    </div>
-    """, unsafe_allow_html=True)
+    if _cur_evt == "wedding":
+        st.markdown("""
+        <div class="wedding-bar-svg">
+          <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="120" width="240" height="8" rx="4" fill="#c9838a" opacity=".5"/>
+            <rect x="50" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
+            <rect x="242" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
+            <rect x="80" y="75" width="18" height="45" rx="5" fill="#d4a96a" opacity=".7"/>
+            <rect x="85" y="65" width="8" height="14" rx="3" fill="#d4a96a" opacity=".7"/>
+            <rect x="115" y="80" width="22" height="40" rx="4" fill="#8aab8a" opacity=".65"/>
+            <rect x="121" y="68" width="10" height="16" rx="3" fill="#8aab8a" opacity=".65"/>
+            <path d="M160 120 L155 95 Q152 80 165 78 Q178 80 175 95 L170 120 Z" fill="#c9838a" opacity=".5"/>
+            <path d="M195 120 L192 100 Q190 85 198 83 Q206 85 204 100 L201 120 Z" fill="#d4a96a" opacity=".5"/>
+            <circle cx="240" cy="108" r="10" fill="none" stroke="#d4a96a" stroke-width="2.5" opacity=".6"/>
+            <circle cx="240" cy="108" r="5" fill="#d4a96a" opacity=".3"/>
+            <circle cx="60" cy="95" r="6" fill="#c9838a" opacity=".4"/>
+            <text x="25" y="55" font-size="12" fill="#d4a96a" opacity=".4">✦</text>
+            <text x="265" y="65" font-size="10" fill="#c9838a" opacity=".4">✦</text>
+            <text x="150" y="22" text-anchor="middle" font-family="Cormorant Garamond, serif"
+                  font-size="13" fill="#d4a96a" opacity=".7" font-style="italic">
+              הזן פרטים וקבל המלצה מיידית
+            </text>
+          </svg>
+        </div>
+        """, unsafe_allow_html=True)
+    elif _cur_evt == "henna":
+        st.markdown("""
+        <div class="wedding-bar-svg">
+          <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+            <!-- כוכבים ברקע -->
+            <circle cx="30"  cy="20"  r="1.5" fill="#e67e22" opacity=".5"/>
+            <circle cx="80"  cy="10"  r="1"   fill="#9b59b6" opacity=".6"/>
+            <circle cx="150" cy="15"  r="2"   fill="#e67e22" opacity=".4"/>
+            <circle cx="220" cy="8"   r="1.5" fill="#9b59b6" opacity=".5"/>
+            <circle cx="270" cy="25"  r="1"   fill="#e67e22" opacity=".6"/>
+            <circle cx="260" cy="50"  r="1.5" fill="#9b59b6" opacity=".4"/>
+            <circle cx="40"  cy="60"  r="1"   fill="#e67e22" opacity=".5"/>
+            <!-- פנס מרוקאי מרכזי -->
+            <polygon points="150,30 165,55 170,90 150,100 130,90 135,55"
+                     fill="#9b59b6" opacity=".35" stroke="#9b59b6" stroke-width="1"/>
+            <polygon points="150,35 162,57 166,88 150,97 134,88 138,57"
+                     fill="#e67e22" opacity=".25"/>
+            <!-- חלונות הפנס -->
+            <rect x="141" y="50" width="10" height="14" rx="3" fill="#f39c12" opacity=".5"/>
+            <rect x="155" y="50" width="10" height="14" rx="3" fill="#f39c12" opacity=".5"/>
+            <rect x="141" y="68" width="10" height="14" rx="3" fill="#f39c12" opacity=".5"/>
+            <rect x="155" y="68" width="10" height="14" rx="3" fill="#f39c12" opacity=".5"/>
+            <!-- חוט תלייה -->
+            <line x1="150" y1="10" x2="150" y2="30" stroke="#e67e22" stroke-width="1.5" opacity=".5"/>
+            <!-- בסיס הפנס -->
+            <polygon points="145,100 155,100 158,115 142,115" fill="#9b59b6" opacity=".4"/>
+            <line x1="148" y1="115" x2="145" y2="128" stroke="#e67e22" stroke-width="1" opacity=".5"/>
+            <line x1="152" y1="115" x2="155" y2="128" stroke="#e67e22" stroke-width="1" opacity=".5"/>
+            <!-- פרחי יסמין -->
+            <circle cx="70"  cy="120" r="8"  fill="#9b59b6" opacity=".3"/>
+            <circle cx="62"  cy="115" r="5"  fill="#e67e22" opacity=".35"/>
+            <circle cx="78"  cy="115" r="5"  fill="#e67e22" opacity=".35"/>
+            <circle cx="70"  cy="110" r="5"  fill="#f39c12" opacity=".3"/>
+            <!-- פרחים נוספים -->
+            <circle cx="230" cy="120" r="8"  fill="#9b59b6" opacity=".3"/>
+            <circle cx="222" cy="115" r="5"  fill="#e67e22" opacity=".35"/>
+            <circle cx="238" cy="115" r="5"  fill="#e67e22" opacity=".35"/>
+            <circle cx="230" cy="110" r="5"  fill="#f39c12" opacity=".3"/>
+            <!-- ירח -->
+            <circle cx="255" cy="45" r="18" fill="#e67e22" opacity=".15"/>
+            <circle cx="262" cy="40" r="14" fill="#0a0812" opacity=".8"/>
+            <!-- כיתוב -->
+            <text x="150" y="150" text-anchor="middle" font-family="Cormorant Garamond, serif"
+                  font-size="13" fill="#e67e22" opacity=".7" font-style="italic">
+              אהלן וסהלן! הזן פרטים לחינה מושלמת
+            </text>
+          </svg>
+        </div>
+        """, unsafe_allow_html=True)
+    elif _cur_evt == "barmitzvah":
+        st.markdown("""
+        <div class="wedding-bar-svg">
+          <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+            <!-- מגן דוד -->
+            <polygon points="150,20 168,50 132,50" fill="none" stroke="#1a6bb5" stroke-width="2" opacity=".6"/>
+            <polygon points="150,65 132,35 168,35" fill="none" stroke="#1a6bb5" stroke-width="2" opacity=".6"/>
+            <circle cx="150" cy="42" r="20" fill="none" stroke="#e8c97e" stroke-width="1" opacity=".3"/>
+            <!-- ספר תורה שמאל -->
+            <rect x="55" y="75" width="30" height="45" rx="15" fill="#1a6bb5" opacity=".4"/>
+            <rect x="62" y="72" width="5" height="52" rx="2" fill="#e8c97e" opacity=".5"/>
+            <rect x="83" y="72" width="5" height="52" rx="2" fill="#e8c97e" opacity=".5"/>
+            <rect x="63" y="85" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="63" y="92" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="63" y="99" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="63" y="106" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <!-- ספר תורה ימין -->
+            <rect x="215" y="75" width="30" height="45" rx="15" fill="#1a6bb5" opacity=".4"/>
+            <rect x="222" y="72" width="5" height="52" rx="2" fill="#e8c97e" opacity=".5"/>
+            <rect x="243" y="72" width="5" height="52" rx="2" fill="#e8c97e" opacity=".5"/>
+            <rect x="223" y="85" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="223" y="92" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="223" y="99" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <rect x="223" y="106" width="22" height="1.5" rx="1" fill="#e8c97e" opacity=".4"/>
+            <!-- בלונים -->
+            <circle cx="40"  cy="50" r="12" fill="#1a6bb5" opacity=".3"/>
+            <circle cx="260" cy="50" r="12" fill="#e8c97e" opacity=".3"/>
+            <circle cx="25"  cy="35" r="9"  fill="#e8c97e" opacity=".25"/>
+            <circle cx="275" cy="35" r="9"  fill="#1a6bb5" opacity=".25"/>
+            <line x1="40"  y1="62"  x2="42"  y2="90"  stroke="#1a6bb5" stroke-width="1" opacity=".3"/>
+            <line x1="260" y1="62"  x2="258" y2="90"  stroke="#e8c97e" stroke-width="1" opacity=".3"/>
+            <!-- כיתוב -->
+            <text x="150" y="148" text-anchor="middle" font-family="Cormorant Garamond, serif"
+                  font-size="13" fill="#e8c97e" opacity=".7" font-style="italic">
+              מזל טוב! הזן פרטים לחגיגה מושלמת
+            </text>
+          </svg>
+        </div>
+        """, unsafe_allow_html=True)
 
 if st.button("✨ הפק המלצה מיידית", key="gen"):
     if not st.session_state.active_cats:
         st.error("בחר לפחות סוג אחד")
     else:
-        # 🎉 Confetti burst
+        # 🎉 Confetti burst — צבעים לפי אירוע
         import random as _rnd
-        colors = ['#d4a96a','#c9838a','#8aab8a','#f5e6c8','#e8c97e','#ffffff']
+        _evt_now = st.session_state.get("event_type","wedding") or "wedding"
+        colors = EVENT_CFG.get(_evt_now, EVENT_CFG["wedding"])["confetti"]
         pieces = ""
         for i in range(60):
             c   = _rnd.choice(colors)
@@ -960,11 +1274,8 @@ if st.button("✨ הפק המלצה מיידית", key="gen"):
 
         # ⏳ Loading message
         import random as _r2
-        msgs = [
-            "🥂 בודק מלאי...", "✨ בוחר את המותגים הטובים ביותר...",
-            "🍸 מחשב כמויות...", "🥃 מאזן את הבר...",
-            "🌹 מכין את ההמלצה שלך...", "💍 כמעט מוכן...",
-        ]
+        _evt_now2 = st.session_state.get("event_type","wedding") or "wedding"
+        msgs = EVENT_CFG.get(_evt_now2, EVENT_CFG["wedding"])["loading"]
         with st.spinner(_r2.choice(msgs)):
             import time; time.sleep(0.6)
 
@@ -1281,29 +1592,22 @@ if st.session_state.generated and st.session_state.rec:
     save_state()
 
     # ══ ברכה אישית ══
-    couple = st.session_state.get("couple_name","").strip()
-    if couple:
-        st.markdown(f"""
-        <div style="text-align:center;padding:1.2rem .5rem .5rem">
-          <div style="font-family:'Dancing Script',cursive;font-size:1.6rem;
-               color:var(--gold);line-height:1.3;animation:fadeDown .6s ease both">
-            מזל טוב {couple}! 💍
-          </div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
-               font-size:1rem;color:var(--text-mid);margin-top:.4rem">
-            הרשימה שלכם מוכנה — שיהיה לכם ערב בלתי נשכח 🥂
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style="text-align:center;padding:.8rem .5rem .3rem">
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
-               font-size:1rem;color:var(--text-mid)">
-            מזל טוב! שיהיה לכם ערב בלתי נשכח 🥂
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
+    couple     = st.session_state.get("couple_name","").strip()
+    _evt_b     = st.session_state.get("event_type","wedding") or "wedding"
+    _blessing  = EVENT_CFG.get(_evt_b, EVENT_CFG["wedding"])["blessing"]
+    _name_part = f"מזל טוב {couple}! " if couple else "מזל טוב! "
+    st.markdown(f"""
+    <div style="text-align:center;padding:1.2rem .5rem .5rem">
+      <div style="font-family:'Dancing Script',cursive;font-size:1.6rem;
+           color:var(--gold);line-height:1.3;animation:fadeDown .6s ease both">
+        {_name_part}
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
+           font-size:1rem;color:var(--text-mid);margin-top:.2rem">
+        {_blessing}
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # ══ סה"כ ══
     total_cost = total_alc + total_mix
