@@ -237,17 +237,29 @@ html,body,[class*="css"]{
 
 /* ── Mobile ── */
 @media(max-width:600px){
-  .main .block-container{padding-left:.6rem !important;padding-right:.6rem !important;max-width:100% !important;}
-  .welcome-title{font-size:2rem !important;}
-  .r-num{font-size:1.9rem !important;}
-  .total-main{font-size:2rem !important;}
-  .r-card,.input-panel,.mix-card,.sp-card{padding:.9rem .95rem !important;border-radius:16px !important;}
-  .stButton>button{min-height:52px !important;}
+  .main .block-container{padding-left:.5rem !important;padding-right:.5rem !important;max-width:100% !important;}
+  .welcome-title{font-size:1.9rem !important;}
+  .r-num{font-size:1.8rem !important;}
+  .total-main{font-size:1.9rem !important;}
+  .r-card,.input-panel,.mix-card,.sp-card{padding:.85rem .9rem !important;border-radius:16px !important;}
+  .stButton>button{min-height:50px !important;font-size:.8rem !important;}
   input[type="number"]{font-size:1rem !important;}
+  /* Radio options bigger touch targets */
+  [data-testid="stRadio"] label{
+    min-height:44px !important;
+    display:flex !important;align-items:center !important;
+    padding:.5rem .4rem !important;
+    font-size:.85rem !important;
+  }
+  /* Columns fix */
+  [data-testid="column"]{padding:.05rem .08rem !important;}
+  /* Number input arrows bigger */
+  input[type="number"]::-webkit-inner-spin-button{height:2em !important;opacity:1 !important;}
 }
 html,body{overflow-x:hidden !important;}
 .main .block-container{max-width:640px !important;overflow-x:hidden !important;}
-[data-testid="column"]{padding:.1rem .15rem !important;}
+[data-testid="column"]{padding:.1rem .1rem !important;min-width:0 !important;}
+[data-testid="stHorizontalBlock"]{gap:.3rem !important;flex-wrap:nowrap !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -841,45 +853,59 @@ if st.session_state.generated and st.session_state.rec:
         </div>
         """, unsafe_allow_html=True)
 
-        # Edit buttons — single ⚙️ that opens bottom sheet
-        ea,eb,ec_ = st.columns(3)
+        # ── כפתורי עריכה — שורה אחת עם CSS grid ──
+        st.markdown('''<style>
+        div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div > div > div > div > button {
+          min-height:42px !important; padding:.4rem .3rem !important; font-size:.78rem !important;
+        }
+        </style>''', unsafe_allow_html=True)
+        ea,eb,ec_ = st.columns([2,2,1])
         with ea:
             st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-            if st.button("✏️ מותג", key=f"eb_{cat}"):
+            if st.button(f"✏️ שנה מותג", key=f"eb_{cat}"):
                 st.session_state.edit_open = f"brand_{cat}" if st.session_state.edit_open != f"brand_{cat}" else None
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         with eb:
             st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-            if st.button(f"📊 {info['pct']}%", key=f"ep_{cat}"):
+            if st.button(f"📊 {info['pct']}% שותים", key=f"ep_{cat}"):
                 st.session_state.edit_open = f"pct_{cat}" if st.session_state.edit_open != f"pct_{cat}" else None
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         with ec_:
             st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            if st.button("🗑️ הסר", key=f"ed_{cat}"):
+            if st.button("🗑️", key=f"ed_{cat}"):
                 del st.session_state.rec[cat]
                 if cat in st.session_state.active_cats: st.session_state.active_cats.remove(cat)
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # Brand bottom sheet
+        # ── Brand picker — radio list (mobile friendly) ──
         if st.session_state.edit_open == f"brand_{cat}":
-            st.markdown('<div class="sheet-overlay"><div class="sheet-inner">', unsafe_allow_html=True)
-            st.markdown(f'<div class="sheet-handle"></div><div class="sheet-title">בחר מותג — {CAT_HE[cat]}</div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+                 padding:1rem 1.1rem;margin-bottom:.6rem">
+              <div style="width:36px;height:3px;background:var(--border-dim);border-radius:2px;margin:0 auto .8rem"></div>
+              <div style="font-family:Cormorant Garamond,serif;font-size:1rem;color:var(--gold);
+                   text-align:center;margin-bottom:.7rem">✏️ שנה מותג — {CAT_HE[cat]}</div>
+            ''', unsafe_allow_html=True)
             bdf  = get_brands(df, cat)
             opts = bdf['brand'].tolist()
             cur  = opts.index(info["brand"]) if info["brand"] in opts else 0
-            for bi, opt in enumerate(opts):
-                row   = bdf.iloc[bi]
-                is_sel = opt == info["brand"]
-                he    = brand_display(row)
-                st.markdown(f'<div class="brand-option {"sel" if is_sel else ""}"><div><div class="brand-opt-name {"sel" if is_sel else ""}">{he}</div><div class="brand-opt-price">[{row["level"]}] · ₪{row["price"]:.0f}</div></div>{"<div>✓</div>" if is_sel else ""}</div>', unsafe_allow_html=True)
-            ni = st.selectbox("בחר:", range(len(opts)), format_func=lambda x, d=bdf: fmt_b(d.iloc[x]), index=cur, key=f"sel_{cat}", label_visibility="collapsed")
-            if st.button("✅ אשר", key=f"ok_b_{cat}"):
-                st.session_state.rec[cat]["brand"] = opts[ni]
+            # Radio styled as list
+            st.markdown('<style>[data-testid="stRadio"] label{font-size:.85rem!important;padding:.5rem .3rem!important;}</style>', unsafe_allow_html=True)
+            chosen = st.radio(
+                "בחר מותג:",
+                options=opts,
+                index=cur,
+                format_func=lambda x, d=bdf: f"{brand_display(d[d['brand']==x].iloc[0])}  [{d[d['brand']==x].iloc[0]['level']}]  ₪{d[d['brand']==x].iloc[0]['price']:.0f}",
+                key=f"radio_{cat}",
+                label_visibility="collapsed"
+            )
+            if st.button("✅ אשר בחירה", key=f"ok_b_{cat}"):
+                st.session_state.rec[cat]["brand"] = chosen
                 st.session_state.edit_open = None; st.rerun()
-            st.markdown('</div></div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # Pct edit
         if st.session_state.edit_open == f"pct_{cat}":
