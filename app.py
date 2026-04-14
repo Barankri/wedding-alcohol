@@ -492,11 +492,16 @@ def get_brands(df, cat, flavor=None, levels=None):
     sub = df[df['category']==cat].copy()
     if flavor:  sub = sub[sub['flavor_type']==flavor]
     if levels:  sub = sub[sub['level'].isin(levels)]
-    p = sub[sub['volume_ml']==1000]
-    if p.empty: p = sub[sub['volume_ml']==700]
-    if p.empty: p = sub
+    if sub.empty: return pd.DataFrame()
+    # לכל מותג — בחר נפח מועדף (1000 אם קיים, אחרת 700)
+    # אבל כלול את כל המותגים הייחודיים
+    result_rows = []
+    for brand, grp in sub.groupby('brand'):
+        pref = grp[grp['volume_ml']==1000]
+        row  = pref.iloc[0] if not pref.empty else grp.iloc[0]
+        result_rows.append(row)
+    r = pd.DataFrame(result_rows).copy()
     ord_map = {'Basic':0,'Premium':1,'Special':2}
-    r = p.drop_duplicates('brand').copy()
     r['_o'] = r['level'].map(ord_map).fillna(3)
     return r.sort_values(['_o','price']).drop(columns='_o').reset_index(drop=True)
 
@@ -1143,7 +1148,7 @@ if st.session_state.generated and st.session_state.rec:
             ("האם לחשב מיקסרים כחלק מהתקציב?",
              "כן! מיקסרים יכולים להוסיף 15-25% לעלות הכוללת. האפליקציה מחשבת זאת אוטומטית. אם האולם מספק חלק מהם — סמן 'האולם מביא' להפחתה."),
             ("מתי הזמן הנכון לקנות?",
-             "אלכוהול: 1-2 חודשים לפני — תמיד יש מקום לאחסן ומחירים יציבים. מיקסרים: שבוע לפני — פחית טרייה יותר. קרח: יום לפני / ביום החתונה."),
+             "אלכוהול: 1-2 חודשים לפני — מחירים יציבים ויש זמן לאחסן. מיקסרים: שבוע לפני — פחית טרייה יותר. קרח בדרך כלל מסופק על ידי האולם — כדאי לוודא מראש."),
             ("כמה כוסות שותה אדם ממוצע בחתונה?",
              "2.5-3 כוסות בממוצע לאירוע של 4 שעות. האפליקציה משתמשת בנתון זה. לאירוע ארוך יותר — הגדל את מספר השעות בהגדרות."),
         ]
