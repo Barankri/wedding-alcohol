@@ -623,18 +623,15 @@ st.markdown('<div class="div"></div>', unsafe_allow_html=True)
 st.markdown('<div class="input-panel">', unsafe_allow_html=True)
 st.markdown('<div class="panel-title">📋 פרטי האירוע</div>', unsafe_allow_html=True)
 
-c1,c2 = st.columns(2)
-with c1:
-    g = st.number_input("👥 אורחים", 10, 3000, st.session_state.guests, 10, key="g_in")
-    st.session_state.guests = g
-with c2:
-    ub = st.checkbox("💰 תקציב", value=st.session_state.use_b, key="ub")
-    st.session_state.use_b = ub
-    if ub:
-        bv = st.number_input("₪", 500, 300000, st.session_state.budget or 5000, 500, key="bv")
-        st.session_state.budget = bv
-    else:
-        st.session_state.budget = None
+g = st.number_input("👥 מספר אורחים", 10, 3000, st.session_state.guests, 10, key="g_in")
+st.session_state.guests = g
+ub = st.checkbox("💰 הגדר תקציב", value=st.session_state.use_b, key="ub")
+st.session_state.use_b = ub
+if ub:
+    bv = st.number_input("תקציב (₪)", 500, 300000, st.session_state.budget or 5000, 500, key="bv")
+    st.session_state.budget = bv
+else:
+    st.session_state.budget = None
 
 n_d  = nd(g)
 bpd  = (st.session_state.budget / n_d) if (st.session_state.budget and n_d>0) else None
@@ -650,26 +647,32 @@ st.session_state.couple_name = couple_input
 # Style
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🎨 סגנון</div>', unsafe_allow_html=True)
-sc1,sc2,sc3 = st.columns(3)
-for col,(sk,lbl,desc) in zip([sc1,sc2,sc3],[
-    ("חסכוני","💚 חסכוני","Basic"),
-    ("מאוזן","⚖️ מאוזן","Basic+Premium"),
-    ("פרמיום","✨ פרמיום","Premium"),
-]):
-    with col:
-        is_a = st.session_state.style == sk
-        st.markdown(f'<div class="style-pill {"active" if is_a else ""}">{lbl}<br><small style="font-weight:400;font-size:.65rem;opacity:.8">{desc}</small></div>',
-                    unsafe_allow_html=True)
-        st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-        if st.button(lbl, key=f"sty_{sk}"):
-            st.session_state.style = sk; st.session_state.generated = False; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+for sk,lbl,desc in [
+    ("חסכוני","💚 חסכוני — Basic","המותגים הכי משתלמים"),
+    ("מאוזן","⚖️ מאוזן — Basic+Premium","שילוב מאוזן"),
+    ("פרמיום","✨ פרמיום — Premium","מותגים מובחרים"),
+]:
+    is_a = st.session_state.style == sk
+    border = "var(--gold)" if is_a else "var(--border-dim)"
+    bg     = "rgba(232,201,126,0.08)" if is_a else "var(--bg3)"
+    color  = "var(--gold)" if is_a else "var(--text-dim)"
+    st.markdown(f'''<div style="background:{bg};border:1.5px solid {border};
+        border-radius:14px;padding:.7rem 1rem;margin-bottom:.4rem;
+        display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:.88rem;font-weight:700;color:{color}">{lbl}</div>
+      <div style="font-size:.72rem;color:var(--text-dim)">{desc}</div>
+      {"<div style='color:var(--gold);font-size:.9rem'>✓</div>" if is_a else ""}
+    </div>''', unsafe_allow_html=True)
+    st.markdown(f'<div class="{"btn-ghost" if not is_a else "btn-ghost"}">', unsafe_allow_html=True)
+    if st.button(lbl, key=f"sty_{sk}", use_container_width=True):
+        st.session_state.style = sk; st.session_state.generated = False; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Categories
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🍾 סוגי אלכוהול</div>', unsafe_allow_html=True)
-cc = st.columns(4)
-for col, cat in zip(cc, ["Vodka","Whiskey","Tequila","Anis"]):
+cc1, cc2 = st.columns(2)
+for col, cat in zip([cc1,cc2,cc1,cc2], ["Vodka","Whiskey","Tequila","Anis"]):
     with col:
         val = st.toggle(CAT_HE[cat], value=(cat in st.session_state.active_cats), key=f"tog_{cat}")
         if val and cat not in st.session_state.active_cats:
@@ -682,18 +685,22 @@ for col, cat in zip(cc, ["Vodka","Whiskey","Tequila","Anis"]):
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.3rem">⏱️ שעות האירוע</div>', unsafe_allow_html=True)
 h_val = st.session_state.get("hours", 4)
-hc1,hc2,hc3 = st.columns([1,3,1])
-with hc1:
+h_note = "בסיס" if h_val == 4 else f"+{(h_val-4)*15}% כמות"
+st.markdown(f'''<div style="display:flex;align-items:center;gap:.8rem;
+    background:var(--bg3);border:1px solid var(--border-dim);
+    border-radius:14px;padding:.7rem 1rem">
+  <div style="flex:1;text-align:right;font-size:.9rem;color:var(--gold);font-weight:700">{h_val} שעות</div>
+  <div style="font-size:.78rem;color:var(--text-dim)">{h_note}</div>
+</div>''', unsafe_allow_html=True)
+hb1, hb2 = st.columns(2)
+with hb1:
     st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-    if st.button("➖", key="hm") and h_val > 3:
+    if st.button("➖ פחות שעה", key="hm", use_container_width=True) and h_val > 3:
         st.session_state.hours = h_val - 1; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-with hc2:
-    h_note = "בסיס" if h_val == 4 else f"+{(h_val-4)*15}% כמות"
-    st.markdown(f'<div class="nbox" style="margin:0"><b>{h_val} שעות</b> · {h_note}</div>', unsafe_allow_html=True)
-with hc3:
+with hb2:
     st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-    if st.button("➕", key="hp") and h_val < 10:
+    if st.button("➕ עוד שעה", key="hp", use_container_width=True) and h_val < 10:
         st.session_state.hours = h_val + 1; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -890,25 +897,21 @@ if st.session_state.generated and st.session_state.rec:
             new_d = math.ceil(nd(guests) * new_pct / 100)
             st.markdown(f'<div class="nbox" style="margin:.2rem 0 .6rem">{new_d} אנשים ישתו {CAT_HE[cat]}</div>', unsafe_allow_html=True)
 
-            # כפתורי פעולה
-            ca_, cb_, cc_ = st.columns([3,3,2])
-            with ca_:
-                if st.button("✅ שמור", key=f"ok_{cat}", use_container_width=True):
-                    st.session_state.rec[cat]["brand"] = chosen
-                    st.session_state.rec[cat]["pct"]   = int(new_pct)
-                    st.session_state.edit_open = None; st.rerun()
-            with cb_:
-                st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-                if st.button("✕ ביטול", key=f"cancel_{cat}", use_container_width=True):
-                    st.session_state.edit_open = None; st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-            with cc_:
-                st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-                if st.button("🗑️", key=f"del_{cat}", use_container_width=True):
-                    del st.session_state.rec[cat]
-                    if cat in st.session_state.active_cats: st.session_state.active_cats.remove(cat)
-                    st.session_state.edit_open = None; st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+            # כפתורי פעולה — ורטיקלי
+            if st.button("✅ שמור שינויים", key=f"ok_{cat}", use_container_width=True):
+                st.session_state.rec[cat]["brand"] = chosen
+                st.session_state.rec[cat]["pct"]   = int(new_pct)
+                st.session_state.edit_open = None; st.rerun()
+            st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+            if st.button("✕ ביטול", key=f"cancel_{cat}", use_container_width=True):
+                st.session_state.edit_open = None; st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
+            if st.button("🗑️ הסר קטגוריה זו", key=f"del_{cat}", use_container_width=True):
+                del st.session_state.rec[cat]
+                if cat in st.session_state.active_cats: st.session_state.active_cats.remove(cat)
+                st.session_state.edit_open = None; st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Extras ──
@@ -954,39 +957,34 @@ if st.session_state.generated and st.session_state.rec:
 
     # ── Add buttons ──
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
-    ba,bb,bc = st.columns(3)
-    with ba:
-        st.markdown('<div class="btn-add">', unsafe_allow_html=True)
-        if st.button("🍹 + וודקה טעמים", key="af"):
-            st.session_state.show_flav = not st.session_state.show_flav
-            st.session_state.show_sp   = False; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    with bb:
-        st.markdown('<div class="btn-add">', unsafe_allow_html=True)
-        if st.button("🥃 + וויסקי נוסף", key="aw"):
-            w_df  = get_brands(df,"Whiskey")
-            exist = [r["brand"] for r in st.session_state.extras if r.get("cat")=="Whiskey"]
-            exist.append(rec.get("Whiskey",{}).get("brand",""))
-            nw = w_df[~w_df['brand'].isin(exist)]
-            if not nw.empty:
-                st.session_state.extras.append({"brand":nw.iloc[0]['brand'],"cat":"Whiskey","pct":10})
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    with bc:
-        st.markdown('<div class="btn-sp">', unsafe_allow_html=True)
-        if st.button("👑 + יוקרה", key="asp"):
-            st.session_state.show_sp   = not st.session_state.show_sp
-            st.session_state.show_flav = False; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="btn-add">', unsafe_allow_html=True)
+    if st.button("🍹 הוסף וודקה בטעמים", key="af", use_container_width=True):
+        st.session_state.show_flav = not st.session_state.show_flav
+        st.session_state.show_sp   = False; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="btn-add">', unsafe_allow_html=True)
+    if st.button("🥃 הוסף מותג וויסקי נוסף", key="aw", use_container_width=True):
+        w_df  = get_brands(df,"Whiskey")
+        exist = [r["brand"] for r in st.session_state.extras if r.get("cat")=="Whiskey"]
+        exist.append(rec.get("Whiskey",{}).get("brand",""))
+        nw = w_df[~w_df['brand'].isin(exist)]
+        if not nw.empty:
+            st.session_state.extras.append({"brand":nw.iloc[0]['brand'],"cat":"Whiskey","pct":10})
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="btn-sp">', unsafe_allow_html=True)
+    if st.button("👑 הוסף בקבוק יוקרה", key="asp", use_container_width=True):
+        st.session_state.show_sp   = not st.session_state.show_sp
+        st.session_state.show_flav = False; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if st.session_state.show_flav:
         st.markdown('<div class="edit-pnl">', unsafe_allow_html=True)
         fd = get_brands(df,"Vodka",flavor="flavored")
         if not fd.empty:
             fo = fd['brand'].tolist()
-            fc1,fc2 = st.columns([3,1])
-            with fc1: fi = st.selectbox("טעם:",range(len(fo)),format_func=lambda x,d=fd:fmt_b(d.iloc[x]),key="fi")
-            with fc2: fp = st.number_input("% שותים",5,40,15,5,key="fp")
+            fi = st.selectbox("בחר טעם:",range(len(fo)),format_func=lambda x,d=fd:fmt_b(d.iloc[x]),key="fi")
+            fp = st.number_input("% מהשותים שישתו וודקה בטעמים",5,40,15,5,key="fp")
             if st.button("✅ הוסף",key="fi_ok"):
                 st.session_state.extras.append({"brand":fo[fi],"cat":"Vodka","pct":int(fp)})
                 st.session_state.show_flav = False; st.rerun()
@@ -999,9 +997,8 @@ if st.session_state.generated and st.session_state.rec:
             p_sp  = sp_raw[sp_raw['volume_ml']==1000]
             if p_sp.empty: p_sp = sp_raw[sp_raw['volume_ml']==700]
             sp_cl = p_sp.drop_duplicates('brand').reset_index(drop=True)
-            sc1_,sc2_ = st.columns([3,1])
-            with sc1_: si = st.selectbox("בחר:",range(len(sp_cl)),format_func=lambda x,d=sp_cl:fmt_b(d.iloc[x]),key="si")
-            with sc2_: sp_ = st.number_input("% שותים",2,20,5,1,key="sip")
+            si = st.selectbox("בחר מוצר:",range(len(sp_cl)),format_func=lambda x,d=sp_cl:fmt_b(d.iloc[x]),key="si")
+            sp_ = st.number_input("% מהשותים שיקבלו בקבוק זה",2,20,5,1,key="sip")
             if st.button("✅ הוסף",key="si_ok"):
                 st.session_state.specials.append({"brand":sp_cl.iloc[si]['brand'],"category":sp_cl.iloc[si]['category'],"pct":int(sp_)})
                 st.session_state.show_sp = False; st.rerun()
@@ -1013,15 +1010,12 @@ if st.session_state.generated and st.session_state.rec:
     if mixer_cups and mx_df is not None and not mx_df.empty:
         st.markdown('<div class="sec">🧃 מיקסרים</div>', unsafe_allow_html=True)
 
-        ec1,ec2 = st.columns([2,3])
-        with ec1:
-            st.markdown('<div style="color:var(--text-mid);font-size:.83rem;padding-top:.35rem">⚡ סוג אנרגי:</div>', unsafe_allow_html=True)
-        with ec2:
-            cur_e  = st.session_state.get("energy_choice","XL")
-            new_e  = st.radio("אנרגי", ["XL","Blue"], index=["XL","Blue"].index(cur_e),
-                              horizontal=True, key="energy_r", label_visibility="collapsed")
-            if new_e != cur_e:
-                st.session_state.energy_choice = new_e; st.rerun()
+        cur_e = st.session_state.get("energy_choice","XL")
+        new_e = st.radio("⚡ סוג משקה אנרגי:", ["XL","Blue"],
+                         index=["XL","Blue"].index(cur_e),
+                         horizontal=True, key="energy_r")
+        if new_e != cur_e:
+            st.session_state.energy_choice = new_e; st.rerun()
 
         mix_results = mixer_calc(mixer_cups, mx_df, st.session_state.venue_map,
                                  st.session_state.get("energy_choice","XL"))
@@ -1136,9 +1130,9 @@ if st.session_state.generated and st.session_state.rec:
     ml_ = f"mailto:?subject={urllib.parse.quote('רשימת אלכוהול')}&body={urllib.parse.quote(chr(10).join(share_lines))}"
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown("**📤 שתף את הרשימה:**")
-    sh1,sh2 = st.columns(2)
-    with sh1: st.markdown(f'<a href="{wa}" target="_blank" class="wa-btn">📱 וואצאפ</a>', unsafe_allow_html=True)
-    with sh2: st.markdown(f'<a href="{ml_}" class="mail-btn">📧 אימייל</a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{wa}" target="_blank" class="wa-btn">📱 שלח לוואצאפ</a>', unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f'<a href="{ml_}" class="mail-btn">📧 שלח באימייל</a>', unsafe_allow_html=True)
 
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
