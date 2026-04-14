@@ -1371,7 +1371,7 @@ st.markdown('''
     נוצר בלב ❤ על ידי בר אנקרי
   </div>
   <div style="color:var(--text-dim);font-size:.7rem;letter-spacing:.03em">
-    מחירים על בסיס בנא משקאות · 60% שותים · 2.5 כוסות לאדם · 10% מרווח
+    מחירים מבוססים על מחירון קמעונאי · 60% שותים · 2.5 כוסות לאדם · 10% מרווח
   </div>
 </div>
 ''', unsafe_allow_html=True)
