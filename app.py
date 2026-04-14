@@ -392,6 +392,99 @@ input[type="number"]::-webkit-outer-spin-button {
   height: 2.5em !important;
   cursor: pointer !important;
 }
+
+/* ── Wedding illustrations ── */
+.wedding-bar-svg { text-align:center; padding: 1.5rem 0 .5rem; opacity:.85; }
+.wedding-bar-svg svg { max-width: 280px; width: 90%; }
+
+/* ── Confetti burst ── */
+.confetti-wrap {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none; z-index: 9999;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; top: -10px;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg) scale(.5); opacity: 0; }
+}
+
+/* ── Loading shimmer ── */
+.loading-wrap {
+  text-align: center; padding: 2rem 1rem;
+}
+.loading-msg {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem; font-style: italic;
+  color: var(--gold); opacity: .8;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s steps(3, end) infinite;
+}
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
+}
+@keyframes pulse {
+  0%,100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+
+/* ── Bottom sheet ── */
+.bottom-sheet-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn .2s ease;
+}
+.bottom-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #1a1215;
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 1.5rem 1.2rem 2rem;
+  z-index: 1001;
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+  max-height: 80vh; overflow-y: auto;
+}
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 1rem;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Animated number ── */
+.anim-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.4rem; font-weight: 900; color: #fff;
+  line-height: 1; display: inline-block;
+  animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 </style>
 
 <div class="bg-wrap">
@@ -678,6 +771,9 @@ st.markdown("""
   <div class="hero-title-en">Wedding Bar Advisor</div>
   <div class="hero-sub">3 שאלות · המלצה מיידית · ניתן לעריכה מלאה</div>
   <div class="hero-divider"><span>🥂</span></div>
+  <div style="margin-top:.3rem;opacity:.3;font-size:.8rem;letter-spacing:.4em;color:var(--rose)">
+    ✿ &nbsp; ✿ &nbsp; ✿
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -790,16 +886,83 @@ with hc3:
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ── איור בר חתונה (empty state) ──
+if not st.session_state.get("generated"):
+    st.markdown("""
+    <div class="wedding-bar-svg">
+      <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+        <!-- טייבל -->
+        <rect x="30" y="120" width="240" height="8" rx="4" fill="#c9838a" opacity=".5"/>
+        <rect x="50" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
+        <rect x="242" y="128" width="8" height="28" rx="3" fill="#c9838a" opacity=".3"/>
+        <!-- בקבוק וודקה -->
+        <rect x="80" y="75" width="18" height="45" rx="5" fill="#d4a96a" opacity=".7"/>
+        <rect x="85" y="65" width="8" height="14" rx="3" fill="#d4a96a" opacity=".7"/>
+        <rect x="84" y="62" width="10" height="5" rx="2" fill="#b8883e"/>
+        <!-- בקבוק וויסקי -->
+        <rect x="115" y="80" width="22" height="40" rx="4" fill="#8aab8a" opacity=".65"/>
+        <rect x="121" y="68" width="10" height="16" rx="3" fill="#8aab8a" opacity=".65"/>
+        <rect x="120" y="64" width="12" height="6" rx="2" fill="#6a8a6a"/>
+        <!-- כוס יין -->
+        <path d="M160 120 L155 95 Q152 80 165 78 Q178 80 175 95 L170 120 Z" fill="#c9838a" opacity=".5"/>
+        <rect x="162" y="118" width="6" height="2" rx="1" fill="#c9838a" opacity=".4"/>
+        <ellipse cx="165" cy="120" rx="10" ry="2" fill="#c9838a" opacity=".3"/>
+        <!-- כוס שמפניה -->
+        <path d="M195 120 L192 100 Q190 85 198 83 Q206 85 204 100 L201 120 Z" fill="#d4a96a" opacity=".5"/>
+        <rect x="196" y="118" width="4" height="3" rx="1" fill="#d4a96a" opacity=".4"/>
+        <!-- טבעת -->
+        <circle cx="240" cy="108" r="10" fill="none" stroke="#d4a96a" stroke-width="2.5" opacity=".6"/>
+        <circle cx="240" cy="108" r="5" fill="#d4a96a" opacity=".3"/>
+        <!-- פרחים -->
+        <circle cx="60" cy="95" r="6" fill="#c9838a" opacity=".4"/>
+        <circle cx="52" cy="100" r="4" fill="#d4a96a" opacity=".35"/>
+        <circle cx="68" cy="100" r="4" fill="#8aab8a" opacity=".35"/>
+        <!-- כוכבי זהב -->
+        <text x="25" y="55" font-size="12" fill="#d4a96a" opacity=".4">✦</text>
+        <text x="265" y="65" font-size="10" fill="#c9838a" opacity=".4">✦</text>
+        <text x="145" y="45" font-size="14" fill="#d4a96a" opacity=".5">🥂</text>
+        <!-- כיתוב -->
+        <text x="150" y="22" text-anchor="middle" font-family="Cormorant Garamond, serif"
+              font-size="13" fill="#d4a96a" opacity=".7" font-style="italic">
+          הזן פרטים וקבל המלצה מיידית
+        </text>
+      </svg>
+    </div>
+    """, unsafe_allow_html=True)
+
 if st.button("✨ הפק המלצה מיידית", key="gen"):
     if not st.session_state.active_cats:
         st.error("בחר לפחות סוג אחד")
     else:
+        # 🎉 Confetti burst
+        import random as _rnd
+        colors = ['#d4a96a','#c9838a','#8aab8a','#f5e6c8','#e8c97e','#ffffff']
+        pieces = ""
+        for i in range(60):
+            c   = _rnd.choice(colors)
+            lft = _rnd.randint(5,95)
+            dur = _rnd.uniform(1.2, 2.4)
+            dly = _rnd.uniform(0, 0.4)
+            rot = _rnd.choice(['2px','8px'])
+            pieces += f'<div class="confetti-piece" style="left:{lft}%;background:{c};width:{rot};height:{rot};animation-duration:{dur:.1f}s;animation-delay:{dly:.1f}s"></div>'
+        st.markdown(f'<div class="confetti-wrap">{pieces}</div>', unsafe_allow_html=True)
+
+        # ⏳ Loading message
+        import random as _r2
+        msgs = [
+            "🥂 בודק מלאי...", "✨ בוחר את המותגים הטובים ביותר...",
+            "🍸 מחשב כמויות...", "🥃 מאזן את הבר...",
+            "🌹 מכין את ההמלצה שלך...", "💍 כמעט מוכן...",
+        ]
+        with st.spinner(_r2.choice(msgs)):
+            import time; time.sleep(0.6)
+
         st.session_state.rec      = auto_rec(df, g, st.session_state.style, st.session_state.active_cats)
         st.session_state.extras   = []
         st.session_state.specials = []
         st.session_state.edit_open = None
         st.session_state.generated = True
-        st.session_state._counted  = False  # reset for new session
+        st.session_state._counted  = False
         st.rerun()
 
 # ══════════════════════════════════════
@@ -835,7 +998,11 @@ if st.session_state.generated and st.session_state.rec:
             st.session_state._counted = True
         except: pass
 
-    st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align:center;padding:.5rem 0;opacity:.5;font-size:1.1rem;letter-spacing:.3em;color:var(--rose)">
+      ✦ &nbsp; ✦ &nbsp; ✦
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown('<div class="sec">🍾 ההמלצה שלך</div>', unsafe_allow_html=True)
 
     # ── אלכוהול עיקרי ──
@@ -856,7 +1023,7 @@ if st.session_state.generated and st.session_state.rec:
               <div class="r-brand">{item['brand_he']} &nbsp;{badge_html}</div>
             </div>
             <div class="r-right">
-              <div class="r-num">{item['n']}</div>
+              <div class="anim-num">{item['n']}</div>
               <div class="r-num-lbl">בקבוקים</div>
             </div>
           </div>
