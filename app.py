@@ -24,7 +24,7 @@ st.set_page_config(page_title="יועץ האלכוהול", page_icon="🥂", lay
 # ══════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400;1,600&family=Dancing+Script:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Dancing+Script:wght@600;700&display=swap');
 
 :root {
   --gold:#e8c97e; --gold2:#b89a50;
@@ -35,6 +35,17 @@ st.markdown("""
   --text:#ede5d5; --text-mid:#a09070; --text-dim:#5a5248;
   --green:#4ade80; --red:#f87171; --blue:#60c8f5;
   --r:20px; --r-sm:14px; --r-xs:10px;
+}
+/* event themes */
+body.theme-henna {
+  --bg:#0a0812; --bg2:#150f20; --bg3:#1c1530;
+  --gold:#e67e22; --rose:#9b59b6;
+  --border:rgba(230,126,34,0.2);
+}
+body.theme-barmitzvah {
+  --bg:#07090f; --bg2:#0f1520; --bg3:#141e30;
+  --gold:#e8c97e; --rose:#1a6bb5;
+  --border:rgba(96,165,250,0.2);
 }
 *{box-sizing:border-box;}
 html,body,[class*="css"]{
@@ -59,8 +70,8 @@ html,body,[class*="css"]{
   animation:fadeDown .6s ease both;
 }
 .welcome-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:clamp(2.2rem,7vw,3rem);font-weight:700;font-style:italic;
+  font-family:Frank Ruhl Libre,serif;
+  font-size:clamp(2.2rem,7vw,3rem);font-weight:700;
   color:var(--gold);line-height:1.05;margin-bottom:.3rem;
   animation:fadeDown .6s .05s ease both;
 }
@@ -88,7 +99,7 @@ html,body,[class*="css"]{
 .ec-henna::after{background:linear-gradient(135deg,rgba(230,126,34,.08),transparent);}
 .ec-bar::after{background:linear-gradient(135deg,rgba(26,107,181,.08),transparent);}
 .ec-icon{font-size:2rem;min-width:48px;text-align:center;}
-.ec-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--gold);}
+.ec-title{font-family:Frank Ruhl Libre,serif;font-size:1.2rem;font-weight:700;color:var(--gold);}
 .ec-desc{font-size:.78rem;color:var(--text-dim);margin-top:.1rem;}
 .ec-arrow{margin-right:auto;color:var(--text-dim);font-size:1rem;}
 
@@ -98,7 +109,7 @@ html,body,[class*="css"]{
   border-radius:var(--r);padding:1.4rem 1.5rem;margin-bottom:1rem;
 }
 .panel-title{
-  font-family:'Cormorant Garamond',serif;
+  font-family:Frank Ruhl Libre,serif;
   font-size:1.05rem;font-weight:700;color:var(--gold);
   margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;
 }
@@ -116,18 +127,16 @@ html,body,[class*="css"]{
 
 /* ── Result card — compact mobile ── */
 .r-card{
-  background:var(--bg2);border:1px solid var(--border-dim);
   border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.8rem;
   transition:border-color .2s;
   animation:fadeUp .4s ease both;
 }
-.r-card:hover{border-color:var(--border);}
 .r-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.7rem;}
 .r-left{flex:1;}
-.r-cat{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--gold);}
+.r-cat{font-family:Frank Ruhl Libre,serif;font-size:1.05rem;font-weight:700;color:var(--gold);}
 .r-brand{font-size:.78rem;color:var(--text-mid);margin-top:.1rem;}
 .r-right{text-align:center;min-width:56px;}
-.r-num{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:900;color:#fff;line-height:1;animation:popIn .4s ease both;}
+.r-num{font-family:Frank Ruhl Libre,serif;font-size:2.2rem;font-weight:900;color:#fff;line-height:1;animation:popIn .4s ease both;}
 .r-num-lbl{font-size:.62rem;color:var(--text-dim);}
 .r-row{display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid var(--border-dim);font-size:.82rem;color:var(--text);}
 .r-row:last-child{border-bottom:none;}
@@ -151,7 +160,7 @@ html,body,[class*="css"]{
   border-radius:var(--r);padding:1rem 1.1rem;
 }
 .sheet-handle{width:36px;height:3px;background:var(--border-dim);border-radius:2px;margin:0 auto .8rem;}
-.sheet-title{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold);text-align:center;margin-bottom:.8rem;}
+.sheet-title{font-family:Frank Ruhl Libre,serif;font-size:1rem;color:var(--gold);text-align:center;margin-bottom:.8rem;}
 .brand-option{
   display:flex;justify-content:space-between;align-items:center;
   padding:.6rem .8rem;border-radius:var(--r-xs);margin-bottom:.4rem;
@@ -188,7 +197,7 @@ html,body,[class*="css"]{
   align-items:center;margin:1rem 0;
   box-shadow:0 0 40px rgba(232,201,126,.06);
 }
-.total-main{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:900;color:var(--gold);line-height:1;}
+.total-main{font-family:Frank Ruhl Libre,serif;font-size:2.4rem;font-weight:900;color:var(--gold);line-height:1;}
 .total-meta{font-size:.75rem;color:var(--text-dim);margin-top:.2rem;}
 .budget-bar{height:4px;background:var(--border-dim);border-radius:2px;margin-top:.5rem;overflow:hidden;width:120px;}
 .budget-fill{height:100%;border-radius:2px;transition:width .6s ease;}
@@ -203,7 +212,7 @@ html,body,[class*="css"]{
 
 /* ── Divider ── */
 .div{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:1rem 0;}
-.sec{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold);margin:.9rem 0 .5rem;}
+.sec{font-family:Frank Ruhl Libre,serif;font-size:1.1rem;color:var(--gold);margin:.9rem 0 .5rem;}
 
 /* ── Share ── */
 .wa-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;background:#25D366;color:#fff;border:none;border-radius:var(--r);padding:.75rem;font-family:'Heebo',sans-serif;font-weight:800;font-size:.9rem;text-decoration:none;width:100%;}
@@ -310,6 +319,12 @@ SAFETY  = 1.10
 ML_CUP  = {"Vodka":50,"Whiskey":50,"Tequila":35,"Anis":50}
 MIX_ML  = 150
 CAT_HE  = {"Vodka":"וודקה 🍸","Whiskey":"וויסקי 🥃","Tequila":"טקילה 🌵","Anis":"ארק 🌿"}
+CAT_COLOR = {
+    "Vodka":   {"gold":"#60c8f5","bg":"#0d1520","border":"rgba(96,200,245,0.3)","dim":"rgba(96,200,245,0.08)","text":"#304858","mid":"#507090"},
+    "Whiskey": {"gold":"#d4934a","bg":"#1a1208","border":"rgba(212,147,74,0.3)", "dim":"rgba(212,147,74,0.08)", "text":"#584830","mid":"#907050"},
+    "Tequila": {"gold":"#7ab648","bg":"#0d1a0d","border":"rgba(122,182,72,0.3)", "dim":"rgba(122,182,72,0.08)", "text":"#385030","mid":"#507040"},
+    "Anis":    {"gold":"#9b72cf","bg":"#120d1a","border":"rgba(155,114,207,0.3)","dim":"rgba(155,114,207,0.08)","text":"#403058","mid":"#706090"},
+}
 CAT_EMJ = {"Vodka":"🍸","Whiskey":"🥃","Tequila":"🌵","Anis":"🌿"}
 MIXER_EMJ = {"energy":"⚡","cranberry":"🫐","russian":"🫧","lemonade":"🍋"}
 MIXER_HE  = {"energy":"אנרגי","cranberry":"חמוציות","russian":"ראשן","lemonade":"לימונדה"}
@@ -337,6 +352,8 @@ EVENT_CFG = {
         "blessing":"שיהיה לכם ערב בלתי נשכח 🥂",
         "confetti":["#e8c97e","#c9838a","#8aab8a","#f5e6c8","#ffffff","#d4a96a"],
         "gold":"#e8c97e","accent":"#c9838a",
+        "bg_main":"#0e0b08","bg2":"#1a1510","bg3":"#221e14",
+        "glow":"rgba(232,201,126,0.07)",
     },
     "henna": {
         "name":"חינה","emoji":"🌙","en":"Henna Night",
@@ -354,6 +371,8 @@ EVENT_CFG = {
         "blessing":"בשעה טובה! שתהיה חינה מהממת 🌙",
         "confetti":["#9b59b6","#e67e22","#f39c12","#d4a96a","#ffffff","#8e44ad"],
         "gold":"#e67e22","accent":"#9b59b6",
+        "bg_main":"#0a0812","bg2":"#150f20","bg3":"#1c1530",
+        "glow":"rgba(155,89,182,0.07)",
     },
     "barmitzvah": {
         "name":"בר/בת מצווה","emoji":"🎉","en":"Bar Mitzvah",
@@ -371,6 +390,8 @@ EVENT_CFG = {
         "blessing":"מזל טוב! שיהיה אירוע מושלם 🎉",
         "confetti":["#1a6bb5","#ffffff","#e8c97e","#4ade80","#60a5fa","#93c5fd"],
         "gold":"#e8c97e","accent":"#1a6bb5",
+        "bg_main":"#07090f","bg2":"#0f1520","bg3":"#141e30",
+        "glow":"rgba(26,107,181,0.07)",
     },
 }
 
@@ -629,7 +650,7 @@ if st.session_state.tool_type == "reverse":
     st.markdown(f"""
     <div style="text-align:center;padding:1.2rem 1rem .8rem">
       <div style="font-family:'Dancing Script',cursive;font-size:.9rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">✦ כלי נוסף ✦</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:2rem;font-weight:700;color:var(--gold)">🔄 כמה אורחים?</div>
+      <div style="font-family:Frank Ruhl Libre,serif;font-size:2rem;font-weight:700;color:var(--gold)">🔄 כמה אורחים?</div>
       <div style="font-size:.82rem;color:var(--text-dim);margin-top:.3rem">הזן כמה בקבוקים יש לך — נחשב לכמה אורחים זה מספיק</div>
     </div>""", unsafe_allow_html=True)
 
@@ -679,7 +700,7 @@ if st.session_state.tool_type == "reverse":
              border:1.5px solid var(--border);border-radius:var(--r);
              padding:1.8rem 1.4rem;text-align:center;margin-top:.8rem">
           <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:.3rem">המלאי שלך מספיק ל</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:900;
+          <div style="font-family:Frank Ruhl Libre,serif;font-size:3.5rem;font-weight:900;
                color:var(--gold);line-height:1">~{min_guests}</div>
           <div style="font-size:.9rem;color:var(--text-mid);margin-top:.4rem">
             אורחים · {rev_hours} שעות · {verdict}
@@ -698,7 +719,7 @@ if st.session_state.tool_type == "leftover":
     st.markdown(f"""
     <div style="text-align:center;padding:1.2rem 1rem .8rem">
       <div style="font-family:'Dancing Script',cursive;font-size:.9rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">✦ כלי נוסף ✦</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:2rem;font-weight:700;color:var(--gold)">📊 מה נשאר?</div>
+      <div style="font-family:Frank Ruhl Libre,serif;font-size:2rem;font-weight:700;color:var(--gold)">📊 מה נשאר?</div>
       <div style="font-size:.82rem;color:var(--text-dim);margin-top:.3rem">הזן מה קנית ומה נשאר — נחשב כמה שתו בפועל</div>
     </div>""", unsafe_allow_html=True)
 
@@ -746,7 +767,7 @@ if st.session_state.tool_type == "leftover":
              border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem 1.4rem;
              text-align:center;margin-bottom:.8rem">
           <div style="font-size:.78rem;color:var(--text-dim)">ניצולת כוללת</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:900;
+          <div style="font-family:Frank Ruhl Libre,serif;font-size:2.8rem;font-weight:900;
                color:{pct_color};line-height:1">{total_pct:.0f}%</div>
           <div style="font-size:.82rem;color:var(--text-mid)">{total_used} מתוך {total_bought} בקבוקים · {verdict}</div>
           <div style="height:5px;background:var(--border-dim);border-radius:3px;overflow:hidden;margin:.6rem 0 0">
@@ -815,7 +836,7 @@ st.markdown(f"""
   <div style="font-family:'Dancing Script',cursive;font-size:.9rem;color:{e_acc};opacity:.7;margin-bottom:.3rem">
     ✦ {ecfg['en']} ✦
   </div>
-  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
+  <div style="font-family:Frank Ruhl Libre,serif;
     font-size:clamp(1.8rem,5vw,2.4rem);font-weight:700;color:{e_gold};line-height:1.1">
     {ecfg['emoji']} יועץ האלכוהול
   </div>
@@ -1028,7 +1049,7 @@ if st.session_state.generated and st.session_state.rec:
     <div style="text-align:center;padding:1rem .5rem .5rem">
       <div style="font-family:'Dancing Script',cursive;font-size:1.5rem;
            color:{e_gold};animation:fadeDown .5s ease both">{name_part}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;
+      <div style="font-family:Frank Ruhl Libre,serif;
            font-size:.95rem;color:var(--text-mid);margin-top:.2rem">{blessing}</div>
     </div>
     <div style="text-align:center;color:{e_acc};opacity:.4;font-size:.9rem;
@@ -1058,22 +1079,25 @@ if st.session_state.generated and st.session_state.rec:
             cups_m = math.ceil(item["drinkers"] * get_cups() * SAFETY)
             mixer_cups["lemonade"] = mixer_cups.get("lemonade",0) + cups_m
 
+        cc = CAT_COLOR.get(cat, {"gold":"var(--gold)","bg":"var(--bg2)","border":"var(--border)","dim":"var(--border-dim)","text":"var(--text-dim)","mid":"var(--text-mid)"})
         st.markdown(f"""
-        <div class="r-card">
+        <div style="background:{cc['bg']};border:1px solid {cc['border']};
+             border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.8rem;
+             transition:border-color .2s;animation:fadeUp .4s ease both">
           <div class="r-head">
             <div class="r-left">
-              <div class="r-cat">{CAT_HE[cat]}</div>
-              <div class="r-brand">{item['brand_he']} &nbsp;{badge_html}</div>
+              <div style="font-family:Frank Ruhl Libre,serif;font-size:1.05rem;font-weight:700;color:{cc['gold']}">{CAT_HE[cat]}</div>
+              <div style="font-size:.78rem;color:{cc['text']};margin-top:.1rem">{item['brand_he']} &nbsp;{badge_html}</div>
             </div>
             <div class="r-right">
-              <div class="r-num">{item['n']}</div>
-              <div class="r-num-lbl">בקבוקים</div>
+              <div style="font-family:Frank Ruhl Libre,serif;font-size:2.2rem;font-weight:900;color:{cc['gold']};line-height:1;animation:popIn .4s ease both">{item['n']}</div>
+              <div class="r-num-lbl" style="color:{cc['text']}">בקבוקים</div>
             </div>
           </div>
-          <div class="r-row"><span>נפח</span><span>{item['vol']} מ"ל</span></div>
-          <div class="r-row"><span>שותים ({item['pct']}%)</span><span>{item['drinkers']} אנשים</span></div>
-          <div class="r-row"><span>מחיר לבקבוק</span><span>₪{item['ppb']:.0f}</span></div>
-          <div class="r-row"><span>סה"כ</span><span class="r-val">₪{item['total']:.0f}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>נפח</span><span>{item['vol']} מ"ל</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>שותים ({item['pct']}%)</span><span>{item['drinkers']} אנשים</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>מחיר לבקבוק</span><span>₪{item['ppb']:.0f}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:.28rem 0;font-size:.82rem;color:{cc['mid']}"><span>סה"כ</span><span style="color:{cc['gold']};font-weight:700">₪{item['total']:.0f}</span></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1090,7 +1114,7 @@ if st.session_state.generated and st.session_state.rec:
         # ── פאנל עריכה מאוחד ──
         if st.session_state.edit_open == f"edit_{cat}":
             st.markdown('<div class="edit-pnl">', unsafe_allow_html=True)
-            st.markdown(f'<div style="font-family:Cormorant Garamond,serif;font-size:.95rem;color:var(--gold);margin-bottom:.8rem;text-align:center">⚙️ עריכת {CAT_HE[cat]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-family:Frank Ruhl Libre,serif;font-size:.95rem;color:var(--gold);margin-bottom:.8rem;text-align:center">⚙️ עריכת {CAT_HE[cat]}</div>', unsafe_allow_html=True)
 
             # מותג
             st.markdown('<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.3rem">✏️ מותג</div>', unsafe_allow_html=True)
@@ -1352,7 +1376,7 @@ if st.session_state.generated and st.session_state.rec:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;
+    <div style="font-family:Frank Ruhl Libre,serif;font-size:1rem;
          color:var(--gold);text-align:center;margin-bottom:.6rem">
       📲 רשימת קניות — QR Code
     </div>
@@ -1401,7 +1425,7 @@ st.markdown('<div class="div"></div>', unsafe_allow_html=True)
 with st.expander("👋 אודות היועץ"):
     st.markdown("""
     <div style="direction:rtl;padding:.3rem 0">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:.7rem">
+      <div style="font-family:Frank Ruhl Libre,serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:.7rem">
         היי, אני בר אנקרי 👋
       </div>
       <div style="color:var(--text-mid);font-size:.86rem;line-height:1.8">
