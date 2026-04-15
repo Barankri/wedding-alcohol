@@ -671,50 +671,21 @@ if st.session_state.tool_type == "reverse":
             results_rev[cat] = {"ml": ml, "drinkers": math.floor(drinkers), "guests": math.floor(guests_from_cat)}
 
     if any(v > 0 for v in [rev_vodka,rev_whiskey,rev_tequila,rev_anis]):
-        st.markdown('<div class="div"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="sec">📊 התוצאה</div>', unsafe_allow_html=True)
-
         min_guests = min(r["guests"] for r in results_rev.values()) if results_rev else 0
 
+        verdict = "⚠️ מלאי קטן" if min_guests < 80 else "✅ מלאי טוב!"
         st.markdown(f"""
         <div style="background:linear-gradient(135deg,rgba(232,201,126,0.1),rgba(232,201,126,0.03));
              border:1.5px solid var(--border);border-radius:var(--r);
-             padding:1.2rem 1.4rem;text-align:center;margin-bottom:.8rem">
-          <div style="font-size:.78rem;color:var(--text-dim)">המלאי שלך מספיק ל</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:900;
+             padding:1.8rem 1.4rem;text-align:center;margin-top:.8rem">
+          <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:.3rem">המלאי שלך מספיק ל</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:900;
                color:var(--gold);line-height:1">~{min_guests}</div>
-          <div style="font-size:.82rem;color:var(--text-mid)">אורחים לאירוע של {rev_hours} שעות</div>
-          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.4rem;border-top:1px solid var(--border-dim);padding-top:.4rem">
-            המספר נקבע לפי הקטגוריה עם הכי פחות — הצוואר בקבוק של הבר
+          <div style="font-size:.9rem;color:var(--text-mid);margin-top:.4rem">
+            אורחים · {rev_hours} שעות · {verdict}
           </div>
         </div>
         """, unsafe_allow_html=True)
-
-
-
-        # פירוט קצר — כמה שותים מכל קטגוריה
-        for cat, res in results_rev.items():
-            is_bottleneck = res["guests"] == min_guests
-            border = "rgba(232,201,126,0.35)" if is_bottleneck else "var(--border-dim)"
-            tag = '<span style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.2);border-radius:20px;padding:1px 7px;font-size:.65rem;margin-right:.3rem">צוואר בקבוק</span>' if is_bottleneck else ""
-            st.markdown(f"""
-            <div style="background:var(--bg2);border:1px solid {border};border-radius:14px;
-                 padding:.8rem 1rem;margin-bottom:.5rem;display:flex;
-                 justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-size:.88rem;font-weight:700;color:var(--gold)">{CAT_HE[cat]} {tag}</div>
-                <div style="font-size:.75rem;color:var(--text-dim);margin-top:.15rem">{res["drinkers"]} שותים · {res["ml"]:.0f} מ\"ל</div>
-              </div>
-              <div style="text-align:left">
-                <div style="font-size:1.2rem;font-weight:700;color:var(--text)">~{res["guests"]}</div>
-                <div style="font-size:.65rem;color:var(--text-dim)">אורחים</div>
-              </div>
-            </div>""", unsafe_allow_html=True)
-
-        if min_guests < 100:
-            st.markdown(f'<div class="wbox">⚠️ המלאי קטן יחסית — מספיק לכ-{min_guests} אורחים בלבד</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="ibox">✅ מלאי טוב! מספיק לכ-{min_guests} אורחים</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="nbox" style="margin-top:.8rem">הזן כמויות כדי לראות את התוצאה</div>', unsafe_allow_html=True)
 
