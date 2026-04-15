@@ -1144,26 +1144,25 @@ if st.session_state.generated and st.session_state.rec:
     """, unsafe_allow_html=True)
 
     if QR_AVAILABLE:
-        # QR דרך qrserver.com API
+        # QR מצביע על וואצאפ עם הרשימה
         couple_m = st.session_state.get("couple_name","").strip()
         meta_txt = f"{guests} אורחים · {st.session_state.get('style','מאוזן')}"
         if couple_m: meta_txt = f"{couple_m} · " + meta_txt
-        # בנה טקסט קצר לQR
-        qr_lines = [_title, f"👥 {guests} אורחים"]
-        for sl in share_lines[3:]:
-            if sl.startswith(("🍸","🥃","🌵","🌿","➕","👑")):
-                qr_lines.append(sl)
-        qr_lines.append(f"💰 סה\"כ: ₪{total_cost:,.0f}")
-        qr_text  = "\n".join(qr_lines)
-        qr_data  = urllib.parse.quote(qr_text)
-        qr_url   = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={qr_data}&color=000000&bgcolor=ffffff&margin=10"
+        # ה-QR פותח וואצאפ עם הרשימה ישירות
+        wa_text    = urllib.parse.quote(chr(10).join(share_lines))
+        wa_link    = f"https://wa.me/?text={wa_text}"
+        qr_data    = urllib.parse.quote(wa_link)
+        qr_img_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={qr_data}&color=000000&bgcolor=ffffff&margin=10&ecc=M"
         st.markdown(f"""
         <div style="text-align:center;padding:.5rem 0">
-          <img src="{qr_url}" width="180" height="180"
-               style="border-radius:12px;border:3px solid rgba(232,201,126,0.3);
-                      background:white;padding:6px;display:block;margin:0 auto"
+          <div style="font-size:.78rem;color:var(--text-mid);margin-bottom:.5rem">
+            סרוק → נפתח וואצאפ עם הרשימה 📱
+          </div>
+          <img src="{qr_img_url}" width="200" height="200"
+               style="border-radius:14px;border:3px solid rgba(232,201,126,0.3);
+                      background:white;padding:8px;display:block;margin:0 auto"
                alt="QR Code"/>
-          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.5rem">{meta_txt} · ₪{total_cost:,.0f}</div>
+          <div style="font-size:.7rem;color:var(--text-dim);margin-top:.4rem">{meta_txt} · ₪{total_cost:,.0f}</div>
         </div>
         """, unsafe_allow_html=True)
 
