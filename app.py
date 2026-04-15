@@ -9,9 +9,10 @@ import datetime
 import random
 try:
     import qrcode
+    from qrcode.image.pil import PilImage
     import io
     QR_AVAILABLE = True
-except ImportError:
+except Exception:
     QR_AVAILABLE = False
 
 # ══════════════════════════════════════
@@ -1158,7 +1159,7 @@ if st.session_state.generated and st.session_state.rec:
         )
         qr.add_data(qr_text)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="#e8c97e", back_color="#111119")
+        img = qr.make_image(fill_color="black", back_color="white")
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         buf.seek(0)
