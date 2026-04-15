@@ -7,13 +7,8 @@ import threading
 import urllib.request
 import datetime
 import random
-try:
-    import qrcode
-    from qrcode.image.pil import PilImage
-    import io
-    QR_AVAILABLE = True
-except Exception:
-    QR_AVAILABLE = False
+# QR נוצר דרך API חינמי — ללא ספרייה חיצונית
+QR_AVAILABLE = True
 
 # ══════════════════════════════════════
 # URLs
@@ -1149,38 +1144,21 @@ if st.session_state.generated and st.session_state.rec:
     """, unsafe_allow_html=True)
 
     if QR_AVAILABLE:
-        # בנה QR מהרשימה
-        qr_text = chr(10).join(share_lines)
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
-            box_size=8,
-            border=3,
-        )
-        qr.add_data(qr_text)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        buf.seek(0)
-
-        # מרכז את ה-QR
-        qc1, qc2, qc3 = st.columns([1,2,1])
-        with qc2:
-            st.image(buf, use_container_width=True)
-
-        couple  = st.session_state.get("couple_name","").strip()
-        meta    = f"{guests} אורחים · {st.session_state.get('style','מאוזן')}"
-        if couple: meta = f"{couple} · " + meta
-        st.markdown(
-            f'<div style="text-align:center;font-size:.75rem;color:var(--text-dim);margin-top:.3rem">{meta} · ₪{total_cost:,.0f}</div>',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<div class="nbox">להפעלת QR Code הרץ: <code>pip install qrcode[pil]</code></div>',
-            unsafe_allow_html=True
-        )
+        # QR דרך Google Charts API — חינמי, ללא ספריות
+        qr_data = urllib.parse.quote(chr(10).join(share_lines[:8]))  # מקצר לגבול URL
+        qr_url  = f"https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl={qr_data}&choe=UTF-8"
+        couple_m = st.session_state.get("couple_name","").strip()
+        meta_txt = f"{guests} אורחים · {st.session_state.get('style','מאוזן')}"
+        if couple_m: meta_txt = f"{couple_m} · " + meta_txt
+        st.markdown(f"""
+        <div style="text-align:center;padding:.5rem 0">
+          <img src="{qr_url}" width="180" height="180"
+               style="border-radius:12px;border:3px solid rgba(232,201,126,0.3);
+                      background:white;padding:6px"
+               alt="QR Code רשימת קניות"/>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.4rem">{meta_txt} · ₪{total_cost:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
