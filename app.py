@@ -684,27 +684,31 @@ if st.session_state.tool_type == "reverse":
           <div style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:900;
                color:var(--gold);line-height:1">~{min_guests}</div>
           <div style="font-size:.82rem;color:var(--text-mid)">אורחים לאירוע של {rev_hours} שעות</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.4rem;border-top:1px solid var(--border-dim);padding-top:.4rem">
+            המספר נקבע לפי הקטגוריה עם הכי פחות — הצוואר בקבוק של הבר
+          </div>
         </div>
         """, unsafe_allow_html=True)
 
+
+
+        # פירוט קצר — כמה שותים מכל קטגוריה
         for cat, res in results_rev.items():
-            pct_fill = min(res["drinkers"] / max(min_guests * DIST_REV[cat], 1), 1.0)
+            is_bottleneck = res["guests"] == min_guests
+            border = "rgba(232,201,126,0.35)" if is_bottleneck else "var(--border-dim)"
+            tag = '<span style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.2);border-radius:20px;padding:1px 7px;font-size:.65rem;margin-right:.3rem">צוואר בקבוק</span>' if is_bottleneck else ""
             st.markdown(f"""
-            <div class="r-card" style="margin-bottom:.6rem">
-              <div class="r-head">
-                <div class="r-left">
-                  <div class="r-cat">{CAT_HE[cat]}</div>
-                  <div class="r-brand">{res["ml"]:.0f} מ\"ל במלאי</div>
-                </div>
-                <div class="r-right">
-                  <div class="r-num">{res["drinkers"]}</div>
-                  <div class="r-num-lbl">שותים</div>
-                </div>
+            <div style="background:var(--bg2);border:1px solid {border};border-radius:14px;
+                 padding:.8rem 1rem;margin-bottom:.5rem;display:flex;
+                 justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-size:.88rem;font-weight:700;color:var(--gold)">{CAT_HE[cat]} {tag}</div>
+                <div style="font-size:.75rem;color:var(--text-dim);margin-top:.15rem">{res["drinkers"]} שותים · {res["ml"]:.0f} מ\"ל</div>
               </div>
-              <div style="height:5px;background:var(--border-dim);border-radius:3px;overflow:hidden;margin:.3rem 0">
-                <div style="width:{pct_fill*100:.0f}%;height:100%;background:var(--gold);border-radius:3px"></div>
+              <div style="text-align:left">
+                <div style="font-size:1.2rem;font-weight:700;color:var(--text)">~{res["guests"]}</div>
+                <div style="font-size:.65rem;color:var(--text-dim)">אורחים</div>
               </div>
-              <div class="r-row"><span>מספיק ל</span><span class="r-val">~{res["guests"]} אורחים</span></div>
             </div>""", unsafe_allow_html=True)
 
         if min_guests < 100:
