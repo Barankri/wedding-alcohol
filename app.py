@@ -1056,8 +1056,24 @@ if st.session_state.generated and st.session_state.rec:
          letter-spacing:.4em;margin-bottom:.5rem">✦ &nbsp; ✦ &nbsp; ✦</div>
     """, unsafe_allow_html=True)
 
-    _title = f"🥂 *רשימת האלכוהול של {couple}*" if couple else "🥂 *רשימת אלכוהול*"
-    share_lines = [_title, f"👥 {guests} אורחים | {nd(guests)} שותים", ""]
+    # ── שמות אירוע לוואצאפ ──
+    evt_names = {"wedding":"💍 חתונה","henna":"🌙 חינה","barmitzvah":"🎉 בר/בת מצווה"}
+    evt_lbl   = evt_names.get(evt, "🥂 אירוע")
+    h_val_sh  = st.session_state.get("hours",4)
+    cost_per  = round(total_alc / guests) if guests > 0 else 0
+
+    if couple:
+        _title = f"🥂 *רשימת האלכוהול — {couple}*"
+    else:
+        _title = "🥂 *רשימת אלכוהול*"
+
+    share_lines = [
+        _title,
+        f"{evt_lbl} · {h_val_sh} שעות",
+        f"👥 {guests} אורחים | {nd(guests)} שותים",
+        "━━━━━━━━━━━━━━━━",
+        "",
+    ]
 
     st.markdown(f'<div class="sec">{ecfg["emoji"]} ההמלצה שלך</div>', unsafe_allow_html=True)
 
@@ -1068,7 +1084,8 @@ if st.session_state.generated and st.session_state.rec:
         total_alc += item["total"]
         has_split = len([e for e in st.session_state.extras if e.get("cat")==cat]) > 0
         if not has_split:
-            share_lines.append(f"{CAT_EMJ[cat]} {item['brand_he']}: {item['n']} בקבוקים (₪{item['total']:.0f})")
+            share_lines.append(f"{CAT_EMJ[cat]} *{CAT_HE[cat].split()[0]}*: {item['n']} בקבוקים (₪{item['total']:.0f})")
+            share_lines.append(f"   └ {item['brand_he']} [{item['level']}]")
 
         lvl_key    = item["level"].lower() if item["level"] else "basic"
         badge_html = BADGE_MAP.get(lvl_key, "")
@@ -1150,7 +1167,9 @@ if st.session_state.generated and st.session_state.rec:
               </div>
             </div>""", unsafe_allow_html=True)
 
-            share_lines.append(f"{CAT_EMJ[cat]} {CAT_HE[cat].split()[0]}: {total_n_all} בקבוקים (₪{total_cost_all:.0f})")
+            split_desc = " · ".join(f"{brand_display(get_prod(df,cat,b[0]))} {b[1]}%" for b in all_brands_card)
+            share_lines.append(f"{CAT_EMJ[cat]} *{CAT_HE[cat].split()[0]}*: {total_n_all} בקבוקים (₪{total_cost_all:.0f})")
+            share_lines.append(f"   └ {split_desc}")
 
         else:
             # כרטיס רגיל — מותג אחד
@@ -1439,9 +1458,15 @@ if st.session_state.generated and st.session_state.rec:
 
     # ── Total ──
     total_cost = total_alc + total_mix
-    share_lines.append(f"\n💰 *אלכוהול: ₪{total_alc:,.0f}*")
-    if total_mix > 0: share_lines.append(f"🧃 *מיקסרים: ₪{total_mix:,.0f}*")
+    share_lines.append("")
+    share_lines.append("━━━━━━━━━━━━━━━━")
+    share_lines.append(f"💰 אלכוהול: ₪{total_alc:,.0f}")
+    if total_mix > 0: share_lines.append(f"🧃 מיקסרים: ₪{total_mix:,.0f}")
     share_lines.append(f"✨ *סה\"כ: ₪{total_cost:,.0f}*")
+    if guests > 0: share_lines.append(f"👤 ₪{round(total_cost/guests)} לאורח")
+    share_lines.append("")
+    share_lines.append("_נוצר בעזרת יועץ האלכוהול 🥂_")
+    share_lines.append("_wedding-alcohol.streamlit.app_")
 
     if budget:
         pct_u  = min(total_cost/budget, 1.0)
