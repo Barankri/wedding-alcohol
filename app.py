@@ -259,7 +259,7 @@ html,body,[class*="css"]{
 html,body{overflow-x:hidden !important;}
 .main .block-container{max-width:640px !important;overflow-x:hidden !important;}
 [data-testid="column"]{padding:.1rem .1rem !important;min-width:0 !important;}
-[data-testid="stHorizontalBlock"]{gap:.3rem !important;flex-wrap:nowrap !important;}
+[data-testid="stHorizontalBlock"]{gap:.4rem !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -648,22 +648,25 @@ st.session_state.couple_name = couple_input
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🎨 סגנון</div>', unsafe_allow_html=True)
 for sk,lbl,desc in [
-    ("חסכוני","💚 חסכוני — Basic","המותגים הכי משתלמים"),
-    ("מאוזן","⚖️ מאוזן — Basic+Premium","שילוב מאוזן"),
-    ("פרמיום","✨ פרמיום — Premium","מותגים מובחרים"),
+    ("חסכוני","💚 חסכוני","Basic — הכי משתלם"),
+    ("מאוזן","⚖️ מאוזן","Basic + Premium"),
+    ("פרמיום","✨ פרמיום","Premium — מובחר"),
 ]:
-    is_a = st.session_state.style == sk
+    is_a   = st.session_state.style == sk
     border = "var(--gold)" if is_a else "var(--border-dim)"
     bg     = "rgba(232,201,126,0.08)" if is_a else "var(--bg3)"
-    color  = "var(--gold)" if is_a else "var(--text-dim)"
-    st.markdown(f'''<div style="background:{bg};border:1.5px solid {border};
-        border-radius:14px;padding:.7rem 1rem;margin-bottom:.4rem;
-        display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:.88rem;font-weight:700;color:{color}">{lbl}</div>
-      <div style="font-size:.72rem;color:var(--text-dim)">{desc}</div>
-      {"<div style='color:var(--gold);font-size:.9rem'>✓</div>" if is_a else ""}
-    </div>''', unsafe_allow_html=True)
-    st.markdown(f'<div class="{"btn-ghost" if not is_a else "btn-ghost"}">', unsafe_allow_html=True)
+    clr    = "var(--gold)" if is_a else "var(--text-dim)"
+    tick   = "✓" if is_a else ""
+    st.markdown(
+        f'<div style="background:{bg};border:1.5px solid {border};border-radius:14px;' +
+        f'padding:.7rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;' +
+        f'align-items:center"><div style="font-size:.88rem;font-weight:700;color:{clr}">{lbl}</div>' +
+        f'<div style="display:flex;align-items:center;gap:.5rem">' +
+        f'<span style="font-size:.72rem;color:var(--text-dim)">{desc}</span>' +
+        f'<span style="color:var(--gold)">{tick}</span></div></div>',
+        unsafe_allow_html=True
+    )
+    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
     if st.button(lbl, key=f"sty_{sk}", use_container_width=True):
         st.session_state.style = sk; st.session_state.generated = False; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -671,15 +674,13 @@ for sk,lbl,desc in [
 # Categories
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🍾 סוגי אלכוהול</div>', unsafe_allow_html=True)
-cc1, cc2 = st.columns(2)
-for col, cat in zip([cc1,cc2,cc1,cc2], ["Vodka","Whiskey","Tequila","Anis"]):
-    with col:
-        val = st.toggle(CAT_HE[cat], value=(cat in st.session_state.active_cats), key=f"tog_{cat}")
-        if val and cat not in st.session_state.active_cats:
-            st.session_state.active_cats.append(cat); st.session_state.generated = False
-        elif not val and cat in st.session_state.active_cats:
-            st.session_state.active_cats.remove(cat)
-            st.session_state.rec.pop(cat, None); st.session_state.generated = False
+for cat in ["Vodka","Whiskey","Tequila","Anis"]:
+    val = st.toggle(CAT_HE[cat], value=(cat in st.session_state.active_cats), key=f"tog_{cat}")
+    if val and cat not in st.session_state.active_cats:
+        st.session_state.active_cats.append(cat); st.session_state.generated = False
+    elif not val and cat in st.session_state.active_cats:
+        st.session_state.active_cats.remove(cat)
+        st.session_state.rec.pop(cat, None); st.session_state.generated = False
 
 # Hours
 st.markdown("<br>", unsafe_allow_html=True)
@@ -692,17 +693,14 @@ st.markdown(f'''<div style="display:flex;align-items:center;gap:.8rem;
   <div style="flex:1;text-align:right;font-size:.9rem;color:var(--gold);font-weight:700">{h_val} שעות</div>
   <div style="font-size:.78rem;color:var(--text-dim)">{h_note}</div>
 </div>''', unsafe_allow_html=True)
-hb1, hb2 = st.columns(2)
-with hb1:
-    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-    if st.button("➖ פחות שעה", key="hm", use_container_width=True) and h_val > 3:
-        st.session_state.hours = h_val - 1; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-with hb2:
-    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
-    if st.button("➕ עוד שעה", key="hp", use_container_width=True) and h_val < 10:
-        st.session_state.hours = h_val + 1; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+if st.button("➕ הוסף שעה", key="hp", use_container_width=True) and h_val < 10:
+    st.session_state.hours = h_val + 1; st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+if st.button("➖ הפחת שעה", key="hm", use_container_width=True) and h_val > 3:
+    st.session_state.hours = h_val - 1; st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
