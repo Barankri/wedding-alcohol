@@ -7,6 +7,12 @@ import threading
 import urllib.request
 import datetime
 import random
+try:
+    import qrcode
+    import io
+    QR_AVAILABLE = True
+except ImportError:
+    QR_AVAILABLE = False
 
 # ══════════════════════════════════════
 # URLs
@@ -205,7 +211,6 @@ html,body,[class*="css"]{
 
 /* ── Share ── */
 .wa-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;background:#25D366;color:#fff;border:none;border-radius:var(--r);padding:.75rem;font-family:'Heebo',sans-serif;font-weight:800;font-size:.9rem;text-decoration:none;width:100%;}
-.mail-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;background:var(--bg3);color:var(--text);border:1px solid var(--border-dim);border-radius:var(--r);padding:.75rem;font-family:'Heebo',sans-serif;font-weight:700;font-size:.88rem;text-decoration:none;width:100%;}
 
 /* ── Confetti ── */
 .confetti-wrap{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;overflow:hidden;}
@@ -1124,13 +1129,57 @@ if st.session_state.generated and st.session_state.rec:
             st.markdown(f"<div style='color:var(--text-mid);font-size:.83rem;margin-bottom:.8rem;padding-right:.4rem'>{a}</div>", unsafe_allow_html=True)
 
     # ── Share ──
-    wa  = f"https://wa.me/?text={urllib.parse.quote(chr(10).join(share_lines))}"
-    ml_ = f"mailto:?subject={urllib.parse.quote('רשימת אלכוהול')}&body={urllib.parse.quote(chr(10).join(share_lines))}"
+    wa = f"https://wa.me/?text={urllib.parse.quote(chr(10).join(share_lines))}"
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown("**📤 שתף את הרשימה:**")
     st.markdown(f'<a href="{wa}" target="_blank" class="wa-btn">📱 שלח לוואצאפ</a>', unsafe_allow_html=True)
+
+    # ── QR Code ──
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(f'<a href="{ml_}" class="mail-btn">📧 שלח באימייל</a>', unsafe_allow_html=True)
+    st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;
+         color:var(--gold);text-align:center;margin-bottom:.6rem">
+      📲 רשימת קניות — QR Code
+    </div>
+    <div style="font-size:.78rem;color:var(--text-dim);text-align:center;margin-bottom:.8rem">
+      סרוק עם הפלאפון בחנות
+    </div>
+    """, unsafe_allow_html=True)
+
+    if QR_AVAILABLE:
+        # בנה QR מהרשימה
+        qr_text = chr(10).join(share_lines)
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=3,
+        )
+        qr.add_data(qr_text)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#e8c97e", back_color="#111119")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+
+        # מרכז את ה-QR
+        qc1, qc2, qc3 = st.columns([1,2,1])
+        with qc2:
+            st.image(buf, use_container_width=True)
+
+        couple  = st.session_state.get("couple_name","").strip()
+        meta    = f"{guests} אורחים · {st.session_state.get('style','מאוזן')}"
+        if couple: meta = f"{couple} · " + meta
+        st.markdown(
+            f'<div style="text-align:center;font-size:.75rem;color:var(--text-dim);margin-top:.3rem">{meta} · ₪{total_cost:,.0f}</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            '<div class="nbox">להפעלת QR Code הרץ: <code>pip install qrcode[pil]</code></div>',
+            unsafe_allow_html=True
+        )
 
     st.markdown('<div class="div"></div>', unsafe_allow_html=True)
     st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
