@@ -1085,7 +1085,7 @@ if st.session_state.generated and st.session_state.rec:
         has_split = len([e for e in st.session_state.extras if e.get("cat")==cat]) > 0
         if not has_split:
             share_lines.append(f"{CAT_EMJ[cat]} *{CAT_HE[cat].split()[0]}*: {item['n']} בקבוקים (₪{item['total']:.0f})")
-            share_lines.append(f"   └ {item['brand_he']} [{item['level']}]")
+            share_lines.append(f"   └ {item['brand_he']}")
 
         lvl_key    = item["level"].lower() if item["level"] else "basic"
         badge_html = BADGE_MAP.get(lvl_key, "")
