@@ -1066,7 +1066,8 @@ if st.session_state.generated and st.session_state.rec:
         info = rec[cat]
         item = calc_item(df, cat, info["brand"], info["pct"], guests, st.session_state.get("hours",4))
         total_alc += item["total"]
-        share_lines.append(f"{CAT_EMJ[cat]} {item['brand_he']}: {item['n']} בקבוקים (₪{item['total']:.0f})")
+        if not has_split:
+            share_lines.append(f"{CAT_EMJ[cat]} {item['brand_he']}: {item['n']} בקבוקים (₪{item['total']:.0f})")
 
         lvl_key    = item["level"].lower() if item["level"] else "basic"
         badge_html = BADGE_MAP.get(lvl_key, "")
@@ -1080,26 +1081,98 @@ if st.session_state.generated and st.session_state.rec:
             mixer_cups["lemonade"] = mixer_cups.get("lemonade",0) + cups_m
 
         cc = CAT_COLOR.get(cat, {"gold":"var(--gold)","bg":"var(--bg2)","border":"var(--border)","dim":"var(--border-dim)","text":"var(--text-dim)","mid":"var(--text-mid)"})
-        st.markdown(f"""
-        <div style="background:{cc['bg']};border:1px solid {cc['border']};
-             border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.8rem;
-             transition:border-color .2s;animation:fadeUp .4s ease both">
-          <div class="r-head">
-            <div class="r-left">
-              <div style="font-family:Frank Ruhl Libre,serif;font-size:1.05rem;font-weight:700;color:{cc['gold']}">{CAT_HE[cat]}</div>
-              <div style="font-size:.78rem;color:{cc['text']};margin-top:.1rem">{item['brand_he']} &nbsp;{badge_html}</div>
+
+        # בדוק אם יש מותגים נוספים לקטגוריה זו
+        sub_brands = [(i,e) for i,e in enumerate(st.session_state.extras)
+                      if e.get("cat")==cat]
+        has_split  = len(sub_brands) > 0
+
+        if has_split:
+            # חשב כל מותג
+            total_extra_split = sum(e.get("split_pct",20) for _,e in sub_brands)
+            main_split_pct    = max(10, 100 - total_extra_split)
+            all_brands_card   = [(info["brand"], main_split_pct, item, False)] +                                 [(e["brand"], e.get("split_pct",20),
+                                  calc_item(df, cat, e["brand"],
+                                            round(item["pct"] * e.get("split_pct",20) / 100) or 5,
+                                            guests, st.session_state.get("hours",4)),
+                                  e.get("flavor_type","regular")=="flavored")
+                                 for _,e in sub_brands]
+            total_n_all   = sum(b[2]["n"] for b in all_brands_card)
+            total_cost_all= sum(b[2]["total"] for b in all_brands_card)
+            total_alc    += total_cost_all - item["total"]  # כבר הוסיף item["total"] למעלה
+
+            # split bar
+            colors_card = [cc["gold"],"#a07040","#9b72cf","#7ab648"]
+            bar_html    = "".join(f'<div style="width:{b[1]}%;background:{colors_card[i%4]};height:100%;opacity:{0.9-i*0.1}"></div>' for i,b in enumerate(all_brands_card))
+            lbl_html    = "".join(f'<span style="font-size:.68rem;color:{cc["mid"]}">{brand_display(get_prod(df,cat,b[0]))} {b[1]}%</span>' for b in all_brands_card)
+
+            st.markdown(f"""
+            <div style="background:{cc['bg']};border:1.5px solid {cc['border']};
+                 border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.5rem;
+                 animation:fadeUp .4s ease both">
+              <div class="r-head" style="margin-bottom:.4rem">
+                <div class="r-left">
+                  <div style="font-family:Frank Ruhl Libre,serif;font-size:1.05rem;font-weight:700;color:{cc['gold']}">{CAT_HE[cat]}</div>
+                  <div style="font-size:.75rem;color:{cc['text']};margin-top:.1rem">{len(all_brands_card)} מותגים · {item['pct']}% שותים · {item['drinkers']} אנשים</div>
+                </div>
+                <div class="r-right">
+                  <div style="font-family:Frank Ruhl Libre,serif;font-size:2.2rem;font-weight:900;color:{cc['gold']};line-height:1">{total_n_all}</div>
+                  <div class="r-num-lbl" style="color:{cc['text']}">בקבוקים</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:.25rem">{lbl_html}</div>
+              <div style="height:7px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:.6rem">{bar_html}</div>""", unsafe_allow_html=True)
+
+            for i_b, (br, sp_pct, it_b, is_flav) in enumerate(all_brands_card):
+                c_b  = colors_card[i_b % 4]
+                he_b = brand_display(get_prod(df, cat, br))
+                flav_tag = ' 🍹' if is_flav else ''
+                st.markdown(f"""
+                <div style="background:rgba(0,0,0,0.15);border:1px solid {cc['dim']};
+                     border-radius:10px;padding:.5rem .8rem;margin-bottom:.3rem;
+                     display:flex;justify-content:space-between;align-items:center">
+                  <div>
+                    <div style="font-size:.83rem;font-weight:700;color:{c_b}">{he_b}{flav_tag}</div>
+                    <div style="font-size:.7rem;color:{cc['text']};margin-top:.05rem">{sp_pct}% · ₪{it_b['ppb']:.0f}/בקבוק</div>
+                  </div>
+                  <div style="text-align:left">
+                    <div style="font-family:Frank Ruhl Libre,serif;font-size:1.3rem;font-weight:700;color:{c_b}">{it_b['n']}</div>
+                    <div style="font-size:.65rem;color:{cc['text']}">₪{it_b['total']:.0f}</div>
+                  </div>
+                </div>""", unsafe_allow_html=True)
+
+            st.markdown(f"""
+              <div style="display:flex;justify-content:space-between;padding-top:.5rem;
+                   border-top:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}">
+                <span>סה"כ</span>
+                <span style="color:{cc['gold']};font-weight:700">₪{total_cost_all:.0f}</span>
+              </div>
+            </div>""", unsafe_allow_html=True)
+
+            share_lines.append(f"{CAT_EMJ[cat]} {CAT_HE[cat].split()[0]}: {total_n_all} בקבוקים (₪{total_cost_all:.0f})")
+
+        else:
+            # כרטיס רגיל — מותג אחד
+            st.markdown(f"""
+            <div style="background:{cc['bg']};border:1px solid {cc['border']};
+                 border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.8rem;
+                 transition:border-color .2s;animation:fadeUp .4s ease both">
+              <div class="r-head">
+                <div class="r-left">
+                  <div style="font-family:Frank Ruhl Libre,serif;font-size:1.05rem;font-weight:700;color:{cc['gold']}">{CAT_HE[cat]}</div>
+                  <div style="font-size:.78rem;color:{cc['text']};margin-top:.1rem">{item['brand_he']} &nbsp;{badge_html}</div>
+                </div>
+                <div class="r-right">
+                  <div style="font-family:Frank Ruhl Libre,serif;font-size:2.2rem;font-weight:900;color:{cc['gold']};line-height:1;animation:popIn .4s ease both">{item['n']}</div>
+                  <div class="r-num-lbl" style="color:{cc['text']}">בקבוקים</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>נפח</span><span>{item['vol']} מ"ל</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>שותים ({item['pct']}%)</span><span>{item['drinkers']} אנשים</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>מחיר לבקבוק</span><span>₪{item['ppb']:.0f}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:.28rem 0;font-size:.82rem;color:{cc['mid']}"><span>סה"כ</span><span style="color:{cc['gold']};font-weight:700">₪{item['total']:.0f}</span></div>
             </div>
-            <div class="r-right">
-              <div style="font-family:Frank Ruhl Libre,serif;font-size:2.2rem;font-weight:900;color:{cc['gold']};line-height:1;animation:popIn .4s ease both">{item['n']}</div>
-              <div class="r-num-lbl" style="color:{cc['text']}">בקבוקים</div>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>נפח</span><span>{item['vol']} מ"ל</span></div>
-          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>שותים ({item['pct']}%)</span><span>{item['drinkers']} אנשים</span></div>
-          <div style="display:flex;justify-content:space-between;padding:.28rem 0;border-bottom:1px solid {cc['dim']};font-size:.82rem;color:{cc['mid']}"><span>מחיר לבקבוק</span><span>₪{item['ppb']:.0f}</span></div>
-          <div style="display:flex;justify-content:space-between;padding:.28rem 0;font-size:.82rem;color:{cc['mid']}"><span>סה"כ</span><span style="color:{cc['gold']};font-weight:700">₪{item['total']:.0f}</span></div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
         # ── כפתור ⚙️ אחד — פותח פאנל עריכה ──
         is_open = st.session_state.edit_open == f"edit_{cat}"
@@ -1118,7 +1191,7 @@ if st.session_state.generated and st.session_state.rec:
             st.markdown(f'<div style="font-family:Frank Ruhl Libre,serif;font-size:.95rem;color:{cc_p["gold"]};margin-bottom:.8rem;text-align:center">⚙️ עריכת {CAT_HE[cat]}</div>', unsafe_allow_html=True)
 
             # ── מותג ראשי ──
-            st.markdown(f'<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.3rem">✏️ מותג ראשי</div>', unsafe_allow_html=True)
+            st.markdown('<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.3rem">✏️ מותג ראשי</div>', unsafe_allow_html=True)
             bdf  = get_brands(df, cat, flavor="regular")
             opts = bdf['brand'].tolist()
             cur  = opts.index(info["brand"]) if info["brand"] in opts else 0
@@ -1134,72 +1207,119 @@ if st.session_state.generated and st.session_state.rec:
             new_d = math.ceil(nd(guests) * new_pct / 100)
             st.markdown(f'<div class="nbox" style="margin:.2rem 0 .5rem">{new_d} אנשים ישתו {CAT_HE[cat]}</div>', unsafe_allow_html=True)
 
-            # ── מותגים נוספים בקטגוריה ──
-            extras_this_cat = [(i,e) for i,e in enumerate(st.session_state.extras) if e.get("cat")==cat and e.get("flavor_type","regular")=="regular"]
-            if extras_this_cat:
-                st.markdown(f'<div style="font-size:.75rem;color:var(--text-dim);margin:.5rem 0 .3rem">🔀 חלוקת מותגים</div>', unsafe_allow_html=True)
-                # % מותג ראשי = 100 - סך extras
-                extra_pcts   = sum(e["split_pct"] for _,e in extras_this_cat)
-                main_split   = max(10, 100 - extra_pcts)
-                st.markdown(f'''<div style="background:{cc_p["bg"]};border:1px solid {cc_p["border"]};border-radius:10px;
-                    padding:.5rem .7rem;display:flex;justify-content:space-between;margin-bottom:.3rem">
-                  <div style="font-size:.8rem;color:{cc_p["gold"]};font-weight:700">{brand_display(get_prod(df,cat,chosen))}</div>
-                  <div style="font-size:.8rem;color:{cc_p["gold"]};font-weight:700">{main_split}%</div>
-                </div>''', unsafe_allow_html=True)
-                for i_e, e_item in extras_this_cat:
-                    he_e = brand_display(get_prod(df,cat,e_item["brand"]))
-                    sp_  = e_item.get("split_pct",20)
-                    new_sp = st.number_input(f"% {he_e}", 5, 80, sp_, 5,
-                                             key=f"sp_pct_{i_e}", label_visibility="visible")
-                    if new_sp != sp_:
-                        st.session_state.extras[i_e]["split_pct"] = int(new_sp); st.rerun()
-                    st.markdown('<div class="btn-danger" style="margin-bottom:.3rem">', unsafe_allow_html=True)
-                    if st.button(f"🗑️ הסר {he_e}", key=f"rm_extra_{i_e}", use_container_width=True):
-                        st.session_state.extras.pop(i_e); st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+            # ── מותגים נוספים קיימים ──
+            extras_this_cat = [(i,e) for i,e in enumerate(st.session_state.extras)
+                               if e.get("cat")==cat and e.get("flavor_type","regular")=="regular"]
+            flav_extras     = [(i,e) for i,e in enumerate(st.session_state.extras)
+                               if e.get("cat")=="Vodka" and e.get("flavor_type","regular")=="flavored"] if cat=="Vodka" else []
+
+            if extras_this_cat or flav_extras:
+                st.markdown('<div style="height:.3rem"></div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem">🔀 מותגים נוספים</div>', unsafe_allow_html=True)
+
+            for i_e, e_item in extras_this_cat:
+                he_e = brand_display(get_prod(df, cat, e_item["brand"]))
+                sp_  = e_item.get("split_pct", 20)
+                # selectbox לבחירת מותג
+                ex_bdf  = get_brands(df, cat, flavor="regular")
+                ex_opts = ex_bdf['brand'].tolist()
+                ex_cur  = ex_opts.index(e_item["brand"]) if e_item["brand"] in ex_opts else 0
+                st.markdown(f'<div style="font-size:.72rem;color:{cc_p["gold"]};margin-bottom:.2rem">מותג {i_e+2}</div>', unsafe_allow_html=True)
+                ex_chosen = st.selectbox(f"מותג {i_e+2}", ex_opts, index=ex_cur,
+                    format_func=lambda x, d=ex_bdf: f"{brand_display(d[d['brand']==x].iloc[0])}  [{d[d['brand']==x].iloc[0]['level']}]  ₪{d[d['brand']==x].iloc[0]['price']:.0f}",
+                    key=f"ex_sel2_{i_e}", label_visibility="collapsed")
+                new_sp = st.number_input(f"% חלוקה למותג {i_e+2}", 5, 80, sp_, 5,
+                                         key=f"sp_pct2_{i_e}", label_visibility="visible")
+                if ex_chosen != e_item["brand"]:
+                    st.session_state.extras[i_e]["brand"] = ex_chosen; st.rerun()
+                if new_sp != sp_:
+                    st.session_state.extras[i_e]["split_pct"] = int(new_sp); st.rerun()
+                st.markdown('<div class="btn-danger" style="margin-bottom:.4rem">', unsafe_allow_html=True)
+                if st.button(f"🗑️ הסר {he_e}", key=f"rm_ex2_{i_e}", use_container_width=True):
+                    st.session_state.extras.pop(i_e); st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # וודקה בטעמים
+            for i_f, e_f in flav_extras:
+                fd      = get_brands(df,"Vodka",flavor="flavored")
+                fo_opts = fd['brand'].tolist()
+                fo_cur  = fo_opts.index(e_f["brand"]) if e_f["brand"] in fo_opts else 0
+                st.markdown(f'<div style="font-size:.72rem;color:#9b72cf;margin-bottom:.2rem">🍹 וודקה בטעמים</div>', unsafe_allow_html=True)
+                f_chosen = st.selectbox("טעם", fo_opts, index=fo_cur,
+                    format_func=lambda x, d=fd: f"{brand_display(d[d['brand']==x].iloc[0])}  ₪{d[d['brand']==x].iloc[0]['price']:.0f}",
+                    key=f"flav_sel2_{i_f}", label_visibility="collapsed")
+                f_sp = st.number_input("% טעמים", 5, 40, e_f.get("split_pct",15), 5,
+                                        key=f"flav_sp2_{i_f}", label_visibility="visible")
+                if f_chosen != e_f["brand"]: st.session_state.extras[i_f]["brand"] = f_chosen; st.rerun()
+                if f_sp != e_f.get("split_pct",15): st.session_state.extras[i_f]["split_pct"] = int(f_sp); st.rerun()
+                st.markdown('<div class="btn-danger" style="margin-bottom:.4rem">', unsafe_allow_html=True)
+                if st.button("🗑️ הסר וודקה בטעמים", key=f"rm_flav2_{i_f}", use_container_width=True):
+                    st.session_state.extras.pop(i_f); st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # ── כפתורי הוספה ──
-            st.markdown('<div style="height:.5rem"></div>', unsafe_allow_html=True)
-            # הוסף מותג רגיל נוסף
+            st.markdown('<div style="height:.3rem"></div>', unsafe_allow_html=True)
             exist_brands = [info["brand"]] + [e["brand"] for _,e in extras_this_cat]
             add_bdf = get_brands(df, cat, flavor="regular")
             add_bdf = add_bdf[~add_bdf['brand'].isin(exist_brands)]
             if not add_bdf.empty:
-                st.markdown('<div class="btn-add">', unsafe_allow_html=True)
-                if st.button(f"➕ הוסף מותג {CAT_HE[cat].split()[0]} נוסף", key=f"add_extra_{cat}", use_container_width=True):
-                    first = add_bdf.iloc[0]
-                    st.session_state.extras.append({"brand":first['brand'],"cat":cat,"pct":0,"split_pct":20,"flavor_type":"regular"})
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+                # Toggle להוספת מותג נוסף
+                show_add_key = f"show_add_{cat}"
+                if st.session_state.get(show_add_key, False):
+                    add_opts = add_bdf['brand'].tolist()
+                    st.markdown(f'<div style="font-size:.72rem;color:{cc_p["gold"]};margin-bottom:.2rem">➕ בחר מותג נוסף</div>', unsafe_allow_html=True)
+                    new_brand_idx = st.selectbox("בחר מותג להוספה", range(len(add_opts)),
+                        format_func=lambda x, d=add_bdf: f"{brand_display(d[d['brand']==add_opts[x]].iloc[0])}  [{d[d['brand']==add_opts[x]].iloc[0]['level']}]  ₪{d[d['brand']==add_opts[x]].iloc[0]['price']:.0f}",
+                        key=f"new_brand_sel_{cat}", label_visibility="collapsed")
+                    c_add1, c_add2 = st.columns(2)
+                    with c_add1:
+                        if st.button("✅ הוסף", key=f"confirm_add_{cat}", use_container_width=True):
+                            st.session_state.extras.append({
+                                "brand": add_opts[new_brand_idx], "cat": cat,
+                                "pct": 0, "split_pct": 20, "flavor_type": "regular"
+                            })
+                            st.session_state[show_add_key] = False; st.rerun()
+                    with c_add2:
+                        st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+                        if st.button("✕ ביטול", key=f"cancel_add_{cat}", use_container_width=True):
+                            st.session_state[show_add_key] = False; st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div class="btn-add">', unsafe_allow_html=True)
+                    cat_name = CAT_HE[cat].split()[0]
+                    if st.button(f"➕ הוסף מותג {cat_name} נוסף", key=f"add_extra_{cat}", use_container_width=True):
+                        st.session_state[show_add_key] = True; st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
 
-            # וודקה בטעמים — רק לוודקה
-            if cat == "Vodka":
-                flav_extras = [(i,e) for i,e in enumerate(st.session_state.extras) if e.get("cat")=="Vodka" and e.get("flavor_type","regular")=="flavored"]
+            # וודקה בטעמים כפתור
+            if cat == "Vodka" and not flav_extras:
                 fd = get_brands(df,"Vodka",flavor="flavored")
                 if not fd.empty:
-                    if not flav_extras:
-                        st.markdown('<div class="btn-add">', unsafe_allow_html=True)
-                        if st.button("🍹 הוסף וודקה בטעמים", key="add_flav_inline", use_container_width=True):
-                            st.session_state.extras.append({"brand":fd.iloc[0]['brand'],"cat":"Vodka","pct":0,"split_pct":15,"flavor_type":"flavored"})
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    else:
-                        for i_f, e_f in flav_extras:
-                            he_f = brand_display(get_prod(df,"Vodka",e_f["brand"]))
-                            fo_opts = fd['brand'].tolist()
-                            fo_cur  = fo_opts.index(e_f["brand"]) if e_f["brand"] in fo_opts else 0
-                            st.markdown(f'<div style="font-size:.75rem;color:var(--text-dim);margin:.4rem 0 .2rem">🍹 וודקה בטעמים</div>', unsafe_allow_html=True)
-                            f_chosen = st.selectbox("טעם", fo_opts, index=fo_cur,
-                                format_func=lambda x, d=fd: f"{brand_display(d[d['brand']==x].iloc[0])}  ₪{d[d['brand']==x].iloc[0]['price']:.0f}",
-                                key=f"flav_sel_{i_f}", label_visibility="collapsed")
-                            f_sp = st.number_input(f"% טעמים", 5, 40, e_f.get("split_pct",15), 5,
-                                                    key=f"flav_sp_{i_f}", label_visibility="visible")
-                            if f_chosen != e_f["brand"]: st.session_state.extras[i_f]["brand"] = f_chosen; st.rerun()
-                            if f_sp != e_f.get("split_pct",15): st.session_state.extras[i_f]["split_pct"] = int(f_sp); st.rerun()
-                            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-                            if st.button("🗑️ הסר וודקה בטעמים", key=f"rm_flav_{i_f}", use_container_width=True):
-                                st.session_state.extras.pop(i_f); st.rerun()
+                    show_flav_key = "show_add_flav"
+                    if st.session_state.get(show_flav_key, False):
+                        fo_add = fd['brand'].tolist()
+                        st.markdown('<div style="font-size:.72rem;color:#9b72cf;margin-bottom:.2rem">🍹 בחר וודקה בטעמים</div>', unsafe_allow_html=True)
+                        flav_idx = st.selectbox("בחר טעם", range(len(fo_add)),
+                            format_func=lambda x, d=fd: f"{brand_display(d[d['brand']==fo_add[x]].iloc[0])}  ₪{d[d['brand']==fo_add[x]].iloc[0]['price']:.0f}",
+                            key="new_flav_sel", label_visibility="collapsed")
+                        cf1, cf2 = st.columns(2)
+                        with cf1:
+                            if st.button("✅ הוסף", key="confirm_flav", use_container_width=True):
+                                st.session_state.extras.append({
+                                    "brand": fo_add[flav_idx], "cat": "Vodka",
+                                    "pct": 0, "split_pct": 15, "flavor_type": "flavored"
+                                })
+                                st.session_state[show_flav_key] = False; st.rerun()
+                        with cf2:
+                            st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+                            if st.button("✕ ביטול", key="cancel_flav", use_container_width=True):
+                                st.session_state[show_flav_key] = False; st.rerun()
                             st.markdown('</div>', unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div class="btn-add">', unsafe_allow_html=True)
+                        if st.button("🍹 הוסף וודקה בטעמים", key="add_flav_btn", use_container_width=True):
+                            st.session_state[show_flav_key] = True; st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
 
             st.markdown('<div style="height:.4rem"></div>', unsafe_allow_html=True)
 
@@ -1207,6 +1327,9 @@ if st.session_state.generated and st.session_state.rec:
             if st.button("✅ שמור שינויים", key=f"ok_{cat}", use_container_width=True):
                 st.session_state.rec[cat]["brand"] = chosen
                 st.session_state.rec[cat]["pct"]   = int(new_pct)
+                # נקה toggle states
+                st.session_state.pop(f"show_add_{cat}", None)
+                st.session_state.pop("show_add_flav", None)
                 st.session_state.edit_open = None; st.rerun()
             st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
             if st.button("✕ ביטול", key=f"cancel_{cat}", use_container_width=True):
