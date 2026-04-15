@@ -503,6 +503,7 @@ def send_analytics(style_v, guests_v):
 def ss_init():
     defs = {
         "event_type":None,
+        "tool_type":None,
         "guests":150,"budget":None,"use_b":False,
         "style":"מאוזן",
         "active_cats":["Vodka","Whiskey","Tequila","Anis"],
@@ -529,7 +530,7 @@ if err or df is None:
 # ══════════════════════════════════════
 # WELCOME SCREEN
 # ══════════════════════════════════════
-if not st.session_state.event_type:
+if not st.session_state.event_type and not st.session_state.tool_type:
     st.markdown("""
     <div class="welcome">
       <div class="welcome-glow"></div>
@@ -539,7 +540,10 @@ if not st.session_state.event_type:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="event-list">', unsafe_allow_html=True)
+    # ── אירועים ──
+    st.markdown('''<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem">
+        האירוע שלכם</div>''', unsafe_allow_html=True)
+
     st.markdown("""
     <div class="event-card ec-wedding">
       <div class="ec-icon">💍</div>
@@ -570,13 +574,252 @@ if not st.session_state.event_type:
     if st.button("🎉  בר / בת מצווה", key="ev_b", use_container_width=True):
         st.session_state.event_type = "barmitzvah"; st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    # ── מפריד ──
+    st.markdown('''
+    <div style="display:flex;align-items:center;gap:8px;margin:1.2rem 0 .8rem">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.05)"></div>
+      <div style="font-size:.72rem;color:var(--text-dim);white-space:nowrap">כלים נוספים</div>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.05)"></div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+    # ── כלים ──
+    st.markdown('''
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.5rem">
+      <div style="background:var(--bg2);border:1px solid var(--border-dim);border-radius:14px;
+           padding:.9rem .8rem;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:.3rem">🔄</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:.2rem">כמה אורחים?</div>
+        <div style="font-size:.7rem;color:var(--text-dim);line-height:1.4">יש לי X בקבוקים — לכמה אורחים זה מספיק?</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border-dim);border-radius:14px;
+           padding:.9rem .8rem;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:.3rem">📊</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:.2rem">מה נשאר?</div>
+        <div style="font-size:.7rem;color:var(--text-dim);line-height:1.4">אחרי האירוע — נתח מה שתו בפועל</div>
+      </div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+    tc1, tc2 = st.columns(2)
+    with tc1:
+        st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+        if st.button("🔄 כמה אורחים?", key="tool_rev", use_container_width=True):
+            st.session_state.tool_type = "reverse"; st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    with tc2:
+        st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+        if st.button("📊 מה נשאר?", key="tool_left", use_container_width=True):
+            st.session_state.tool_type = "leftover"; st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown("""
-    <div style="text-align:center;padding:2rem 0 1rem">
+    <div style="text-align:center;padding:1.5rem 0 .5rem">
       <div style="font-family:'Dancing Script',cursive;font-size:1rem;color:var(--rose);opacity:.5">
         נוצר בלב ❤ על ידי בר אנקרי
       </div>
     </div>""", unsafe_allow_html=True)
+    st.stop()
+
+# ══════════════════════════════════════
+# כלי 6 — מחשבון הפוך
+# ══════════════════════════════════════
+if st.session_state.tool_type == "reverse":
+    ecfg_t = EVENT_CFG["wedding"]
+    st.markdown(f"""
+    <div style="text-align:center;padding:1.2rem 1rem .8rem">
+      <div style="font-family:'Dancing Script',cursive;font-size:.9rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">✦ כלי נוסף ✦</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:2rem;font-weight:700;color:var(--gold)">🔄 כמה אורחים?</div>
+      <div style="font-size:.82rem;color:var(--text-dim);margin-top:.3rem">הזן כמה בקבוקים יש לך — נחשב לכמה אורחים זה מספיק</div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+    if st.button("← חזור למסך הפתיחה", key="back_rev", use_container_width=True):
+        st.session_state.tool_type = None; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="input-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">🍾 מה יש לך במלאי?</div>', unsafe_allow_html=True)
+    st.markdown('<div class="nbox" style="margin-bottom:.8rem">הזן 0 אם אין לך מאותו סוג</div>', unsafe_allow_html=True)
+
+    rev_vodka   = st.number_input("🍸 בקבוקי וודקה (ליטר)", 0, 200, 0, 1, key="rv_v")
+    rev_whiskey = st.number_input("🥃 בקבוקי וויסקי (ליטר)", 0, 200, 0, 1, key="rv_w")
+    rev_tequila = st.number_input("🌵 בקבוקי טקילה (ליטר)", 0, 200, 0, 1, key="rv_t")
+    rev_anis    = st.number_input("🌿 בקבוקי ארק (700 מ\"ל)", 0, 200, 0, 1, key="rv_a")
+
+    rev_hours   = st.number_input("⏱️ שעות האירוע", 3, 10, 4, 1, key="rv_h")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # חישוב
+    total_ml = {
+        "Vodka":   rev_vodka   * 1000,
+        "Whiskey": rev_whiskey * 1000,
+        "Tequila": rev_tequila * 1000,
+        "Anis":    rev_anis    * 700,
+    }
+    hours_factor = 1.0 + max(0, rev_hours - 4) * 0.15
+    CUPS_REV = {"Vodka":3.0,"Whiskey":3.0,"Tequila":3.0,"Anis":3.0}
+    DIST_REV = {"Vodka":0.40,"Whiskey":0.30,"Tequila":0.20,"Anis":0.10}
+
+    results_rev = {}
+    for cat, ml in total_ml.items():
+        if ml > 0:
+            ml_per_drinker = CUPS_REV[cat] * ML_CUP[cat] * SAFETY * hours_factor
+            drinkers = ml / ml_per_drinker
+            guests_from_cat = drinkers / DIST_REV[cat]
+            results_rev[cat] = {"ml": ml, "drinkers": math.floor(drinkers), "guests": math.floor(guests_from_cat)}
+
+    if any(v > 0 for v in [rev_vodka,rev_whiskey,rev_tequila,rev_anis]):
+        st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec">📊 התוצאה</div>', unsafe_allow_html=True)
+
+        min_guests = min(r["guests"] for r in results_rev.values()) if results_rev else 0
+
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,rgba(232,201,126,0.1),rgba(232,201,126,0.03));
+             border:1.5px solid var(--border);border-radius:var(--r);
+             padding:1.2rem 1.4rem;text-align:center;margin-bottom:.8rem">
+          <div style="font-size:.78rem;color:var(--text-dim)">המלאי שלך מספיק ל</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:900;
+               color:var(--gold);line-height:1">~{min_guests}</div>
+          <div style="font-size:.82rem;color:var(--text-mid)">אורחים לאירוע של {rev_hours} שעות</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        for cat, res in results_rev.items():
+            pct_fill = min(res["drinkers"] / max(min_guests * DIST_REV[cat], 1), 1.0)
+            st.markdown(f"""
+            <div class="r-card" style="margin-bottom:.6rem">
+              <div class="r-head">
+                <div class="r-left">
+                  <div class="r-cat">{CAT_HE[cat]}</div>
+                  <div class="r-brand">{res["ml"]:.0f} מ\"ל במלאי</div>
+                </div>
+                <div class="r-right">
+                  <div class="r-num">{res["drinkers"]}</div>
+                  <div class="r-num-lbl">שותים</div>
+                </div>
+              </div>
+              <div style="height:5px;background:var(--border-dim);border-radius:3px;overflow:hidden;margin:.3rem 0">
+                <div style="width:{pct_fill*100:.0f}%;height:100%;background:var(--gold);border-radius:3px"></div>
+              </div>
+              <div class="r-row"><span>מספיק ל</span><span class="r-val">~{res["guests"]} אורחים</span></div>
+            </div>""", unsafe_allow_html=True)
+
+        if min_guests < 100:
+            st.markdown(f'<div class="wbox">⚠️ המלאי קטן יחסית — מספיק לכ-{min_guests} אורחים בלבד</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="ibox">✅ מלאי טוב! מספיק לכ-{min_guests} אורחים</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="nbox" style="margin-top:.8rem">הזן כמויות כדי לראות את התוצאה</div>', unsafe_allow_html=True)
+
+    st.stop()
+
+# ══════════════════════════════════════
+# כלי 7 — מה נשאר?
+# ══════════════════════════════════════
+if st.session_state.tool_type == "leftover":
+    st.markdown(f"""
+    <div style="text-align:center;padding:1.2rem 1rem .8rem">
+      <div style="font-family:'Dancing Script',cursive;font-size:.9rem;color:var(--rose);opacity:.7;margin-bottom:.3rem">✦ כלי נוסף ✦</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:2rem;font-weight:700;color:var(--gold)">📊 מה נשאר?</div>
+      <div style="font-size:.82rem;color:var(--text-dim);margin-top:.3rem">הזן מה קנית ומה נשאר — נחשב כמה שתו בפועל</div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+    if st.button("← חזור למסך הפתיחה", key="back_left", use_container_width=True):
+        st.session_state.tool_type = None; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+
+    # קלט — מה קנית
+    st.markdown('<div class="input-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">🛒 מה קנית?</div>', unsafe_allow_html=True)
+    lf_guests = st.number_input("👥 כמה אורחים היו?", 10, 3000, 150, 10, key="lf_g")
+    lf_bought_v = st.number_input("🍸 בקבוקי וודקה שקנית", 0, 200, 12, 1, key="lf_bv")
+    lf_bought_w = st.number_input("🥃 בקבוקי וויסקי שקנית", 0, 200, 8, 1, key="lf_bw")
+    lf_bought_t = st.number_input("🌵 בקבוקי טקילה שקנית", 0, 200, 5, 1, key="lf_bt")
+    lf_bought_a = st.number_input("🌿 בקבוקי ארק שקנית (700מ\"ל)", 0, 200, 6, 1, key="lf_ba")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # קלט — מה נשאר
+    st.markdown('<div class="input-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">📦 מה נשאר?</div>', unsafe_allow_html=True)
+    lf_left_v = st.number_input("🍸 בקבוקי וודקה שנשארו", 0, lf_bought_v or 1, 0, 1, key="lf_lv")
+    lf_left_w = st.number_input("🥃 בקבוקי וויסקי שנשארו", 0, lf_bought_w or 1, 0, 1, key="lf_lw")
+    lf_left_t = st.number_input("🌵 בקבוקי טקילה שנשארו", 0, lf_bought_t or 1, 0, 1, key="lf_lt")
+    lf_left_a = st.number_input("🌿 בקבוקי ארק שנשארו", 0, lf_bought_a or 1, 0, 1, key="lf_la")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    bought = {"Vodka":lf_bought_v,"Whiskey":lf_bought_w,"Tequila":lf_bought_t,"Anis":lf_bought_a}
+    left   = {"Vodka":lf_left_v,  "Whiskey":lf_left_w,  "Tequila":lf_left_t,  "Anis":lf_left_a}
+    used   = {cat: bought[cat] - left[cat] for cat in bought}
+    total_bought = sum(bought.values())
+    total_used   = sum(used.values())
+    total_pct    = (total_used / total_bought * 100) if total_bought > 0 else 0
+
+    if total_bought > 0:
+        st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec">📈 ניתוח הערב</div>', unsafe_allow_html=True)
+
+        # כרטיס סיכום
+        pct_color = "#4ade80" if total_pct >= 75 else ("#f5d78e" if total_pct >= 50 else "#f87171")
+        verdict   = "מעולה! 🎉" if total_pct >= 80 else ("טוב 👍" if total_pct >= 60 else "נשאר הרבה 🤔")
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,rgba(232,201,126,0.08),rgba(232,201,126,0.02));
+             border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem 1.4rem;
+             text-align:center;margin-bottom:.8rem">
+          <div style="font-size:.78rem;color:var(--text-dim)">ניצולת כוללת</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:900;
+               color:{pct_color};line-height:1">{total_pct:.0f}%</div>
+          <div style="font-size:.82rem;color:var(--text-mid)">{total_used} מתוך {total_bought} בקבוקים · {verdict}</div>
+          <div style="height:5px;background:var(--border-dim);border-radius:3px;overflow:hidden;margin:.6rem 0 0">
+            <div style="width:{min(total_pct,100):.0f}%;height:100%;background:{pct_color};border-radius:3px"></div>
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+        # פירוט לפי קטגוריה
+        for cat in ["Vodka","Whiskey","Tequila","Anis"]:
+            if bought[cat] == 0: continue
+            pct_cat = (used[cat] / bought[cat] * 100) if bought[cat] > 0 else 0
+            c_bar   = "#4ade80" if pct_cat >= 75 else ("#f5d78e" if pct_cat >= 50 else "#f87171")
+            tip = ""
+            if pct_cat == 100:
+                tip = '<div class="wbox" style="margin:.4rem 0 0;font-size:.75rem">⚠️ אזל לגמרי — בפעם הבאה הוסף 1-2 בקבוקים</div>'
+            elif pct_cat < 50:
+                tip = f'<div class="wbox" style="margin:.4rem 0 0;font-size:.75rem">💡 נשאר הרבה — בפעם הבאה הפחת ב-{100-int(pct_cat):.0f}%</div>'
+            st.markdown(f"""
+            <div class="r-card" style="margin-bottom:.6rem">
+              <div class="r-head">
+                <div class="r-left">
+                  <div class="r-cat">{CAT_HE[cat]}</div>
+                  <div class="r-brand">שתו {used[cat]} מתוך {bought[cat]} בקבוקים</div>
+                </div>
+                <div class="r-right">
+                  <div class="r-num" style="color:{c_bar}">{pct_cat:.0f}%</div>
+                  <div class="r-num-lbl">ניצולת</div>
+                </div>
+              </div>
+              <div style="height:5px;background:var(--border-dim);border-radius:3px;overflow:hidden;margin:.3rem 0">
+                <div style="width:{min(pct_cat,100):.0f}%;height:100%;background:{c_bar};border-radius:3px"></div>
+              </div>
+              {tip}
+            </div>""", unsafe_allow_html=True)
+
+        # המלצה לפעם הבאה
+        st.markdown('<div class="div"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec">💡 להפעם הבאה</div>', unsafe_allow_html=True)
+        lf_next_guests = st.number_input("👥 כמה אורחים יהיו בפעם הבאה?", 10, 3000, lf_guests, 10, key="lf_ng")
+        if st.button("✨ חשב המלצה לפעם הבאה", key="lf_next", use_container_width=True):
+            st.session_state.event_type = "wedding"
+            st.session_state.guests     = lf_next_guests
+            st.session_state.tool_type  = None
+            st.session_state.generated  = False
+            st.rerun()
+    else:
+        st.markdown('<div class="nbox" style="margin-top:.8rem">הזן כמויות כדי לראות ניתוח</div>', unsafe_allow_html=True)
+
     st.stop()
 
 # ══════════════════════════════════════
@@ -1171,6 +1414,8 @@ if st.session_state.generated and st.session_state.rec:
     if st.button("🔄 התחל מחדש", key="rst"):
         for k in ["rec","generated","extras","specials","edit_open","show_flav","show_sp","venue_map"]:
             st.session_state[k] = {} if k in ["rec","venue_map"] else ([] if k in ["extras","specials"] else (False if "show" in k or k=="generated" else None))
+        st.session_state.event_type = None
+        st.session_state.tool_type  = None
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
