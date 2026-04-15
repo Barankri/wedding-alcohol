@@ -1066,6 +1066,7 @@ if st.session_state.generated and st.session_state.rec:
         info = rec[cat]
         item = calc_item(df, cat, info["brand"], info["pct"], guests, st.session_state.get("hours",4))
         total_alc += item["total"]
+        has_split = len([e for e in st.session_state.extras if e.get("cat")==cat]) > 0
         if not has_split:
             share_lines.append(f"{CAT_EMJ[cat]} {item['brand_he']}: {item['n']} בקבוקים (₪{item['total']:.0f})")
 
