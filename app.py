@@ -19,6 +19,17 @@ ANALYTICS_WRITE_URL  = "https://script.google.com/macros/s/AKfycbxz57lULFP6ClP-G
 
 st.set_page_config(page_title="יועץ האלכוהול", page_icon="🥂", layout="centered")
 
+# ── Google Analytics 4 ──
+st.components.v1.html("""
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S2LWG043SK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-S2LWG043SK');
+</script>
+""", height=0)
+
 # ══════════════════════════════════════
 # CSS — Mobile App Native
 # ══════════════════════════════════════
