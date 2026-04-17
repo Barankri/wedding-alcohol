@@ -252,12 +252,7 @@ html,body,[class*="css"]{
 }
 .stButton>button:hover{transform:translateY(-1px) !important;box-shadow:0 5px 24px rgba(232,201,126,.25) !important;}
 .btn-ghost>button{background:var(--bg3) !important;color:var(--text-mid) !important;border:1px solid var(--border-dim) !important;box-shadow:none !important;font-size:.82rem !important;min-height:44px !important;}
-.btn-wedding>button{background:#1a1510 !important;color:#e8c97e !important;border:1.5px solid rgba(232,201,126,0.35) !important;box-shadow:none !important;font-size:1rem !important;min-height:64px !important;border-radius:18px !important;font-family:'Frank Ruhl Libre',serif !important;font-weight:700 !important;text-align:right !important;padding:0 1.2rem !important;}
-.btn-henna>button{background:#110e18 !important;color:#e67e22 !important;border:1.5px solid rgba(230,126,34,0.35) !important;box-shadow:none !important;font-size:1rem !important;min-height:64px !important;border-radius:18px !important;font-family:'Frank Ruhl Libre',serif !important;font-weight:700 !important;text-align:right !important;padding:0 1.2rem !important;}
-.btn-bar>button{background:#0c1018 !important;color:#60a5fa !important;border:1.5px solid rgba(96,165,250,0.35) !important;box-shadow:none !important;font-size:1rem !important;min-height:64px !important;border-radius:18px !important;font-family:'Frank Ruhl Libre',serif !important;font-weight:700 !important;text-align:right !important;padding:0 1.2rem !important;}
-.btn-wedding>button:hover{border-color:rgba(232,201,126,0.6) !important;}
-.btn-henna>button:hover{border-color:rgba(230,126,34,0.6) !important;}
-.btn-bar>button:hover{border-color:rgba(96,165,250,0.6) !important;}
+
 .btn-danger>button{background:rgba(248,113,113,.08) !important;color:#f87171 !important;border:1px solid rgba(248,113,113,.2) !important;box-shadow:none !important;font-size:.82rem !important;min-height:44px !important;}
 .btn-add>button{background:rgba(74,222,128,.07) !important;color:var(--green) !important;border:1px solid rgba(74,222,128,.2) !important;box-shadow:none !important;font-size:.82rem !important;min-height:44px !important;}
 .btn-sp>button{background:rgba(192,132,252,.07) !important;color:#c084fc !important;border:1px solid rgba(192,132,252,.2) !important;box-shadow:none !important;font-size:.82rem !important;min-height:44px !important;}
@@ -582,21 +577,42 @@ if not st.session_state.event_type and not st.session_state.tool_type:
     st.markdown('''<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem">
         האירוע שלכם</div>''', unsafe_allow_html=True)
 
-    # ── כרטיסי אירוע — כפתורים מעוצבים בלבד ──
-    st.markdown('<div class="btn-wedding">', unsafe_allow_html=True)
-    if st.button("💍  חתונה\n וודקה · וויסקי · טקילה · ארק  ›", key="ev_w", use_container_width=True):
+    # ── כרטיסי אירוע — כרטיס + כפתור אחד ──
+    st.markdown("""
+    <div class="event-card ec-wedding" style="border-color:rgba(232,201,126,0.3)">
+      <div class="ec-icon">💍</div>
+      <div style="flex:1">
+        <div class="ec-title">חתונה</div>
+        <div class="ec-desc">וודקה · וויסקי · טקילה · ארק 🥂</div>
+      </div>
+      <div class="ec-arrow">›</div>
+    </div>""", unsafe_allow_html=True)
+    if st.button("💍  חתונה", key="ev_w", use_container_width=True):
         st.session_state.event_type = "wedding"; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="btn-henna">', unsafe_allow_html=True)
-    if st.button("🌙  חינה\n ארק · וויסקי · וודקה 🔥  ›", key="ev_h", use_container_width=True):
+    st.markdown("""
+    <div class="event-card ec-henna" style="border-color:rgba(230,126,34,0.3)">
+      <div class="ec-icon">🌙</div>
+      <div style="flex:1">
+        <div class="ec-title" style="color:#e67e22">חינה</div>
+        <div class="ec-desc" style="color:#40304a">ארק · וויסקי · וודקה 🔥</div>
+      </div>
+      <div class="ec-arrow">›</div>
+    </div>""", unsafe_allow_html=True)
+    if st.button("🌙  חינה", key="ev_h", use_container_width=True):
         st.session_state.event_type = "henna"; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="btn-bar">', unsafe_allow_html=True)
-    if st.button("🎉  בר / בת מצווה\n הגיע הזמן לחגוג! ✡️  ›", key="ev_b", use_container_width=True):
+    st.markdown("""
+    <div class="event-card ec-bar" style="border-color:rgba(96,165,250,0.3)">
+      <div class="ec-icon">🎉</div>
+      <div style="flex:1">
+        <div class="ec-title" style="color:#60a5fa">בר / בת מצווה</div>
+        <div class="ec-desc" style="color:#203040">הגיע הזמן לחגוג! ✡️</div>
+      </div>
+      <div class="ec-arrow">›</div>
+    </div>""", unsafe_allow_html=True)
+    if st.button("🎉  בר / בת מצווה", key="ev_b", use_container_width=True):
         st.session_state.event_type = "barmitzvah"; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── מפריד ──
     st.markdown('''
