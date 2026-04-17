@@ -538,7 +538,7 @@ def ss_init():
         "tool_type":None,
         "guests":150,"budget":None,"use_b":False,
         "style":"מאוזן",
-        "active_cats":["Vodka","Whiskey","Tequila","Anis"],
+        "active_cats":[],
         "rec":{},"generated":False,
         "extras":[],"specials":[],
         "edit_open":None,
@@ -576,35 +576,52 @@ if not st.session_state.event_type and not st.session_state.tool_type:
     st.markdown('''<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem">
         האירוע שלכם</div>''', unsafe_allow_html=True)
 
+    # ── כרטיסי אירוע — כרטיס + כפתור שקוף ──
+    # חתונה
     st.markdown("""
-    <div class="event-card ec-wedding">
+    <div class="event-card ec-wedding" style="border-color:rgba(232,201,126,0.35);margin-bottom:0">
       <div class="ec-icon">💍</div>
-      <div><div class="ec-title">חתונה</div>
-      <div class="ec-desc">וודקה · וויסקי · טקילה · ארק</div></div>
-      <div class="ec-arrow">›</div>
+      <div style="flex:1">
+        <div class="ec-title">חתונה</div>
+        <div class="ec-desc">וודקה · וויסקי · טקילה · ארק 🥂</div>
+      </div>
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(232,201,126,0.1);display:flex;align-items:center;justify-content:center;color:#e8c97e;font-size:13px;flex-shrink:0">›</div>
     </div>""", unsafe_allow_html=True)
-    if st.button("💍  חתונה", key="ev_w", use_container_width=True):
+    st.markdown('<style>.ev-btn > div > button{margin-top:-58px!important;opacity:0!important;height:58px!important;}</style>', unsafe_allow_html=True)
+    st.markdown('<div class="ev-btn">', unsafe_allow_html=True)
+    if st.button("חתונה", key="ev_w", use_container_width=True):
         st.session_state.event_type = "wedding"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
+    # חינה
     st.markdown("""
-    <div class="event-card ec-henna" style="border-color:rgba(230,126,34,0.2)">
+    <div class="event-card ec-henna" style="border-color:rgba(230,126,34,0.35);margin-bottom:0">
       <div class="ec-icon">🌙</div>
-      <div><div class="ec-title" style="color:#e67e22">חינה</div>
-      <div class="ec-desc">ארק · וויסקי · וודקה · וייב מזרחי</div></div>
-      <div class="ec-arrow">›</div>
+      <div style="flex:1">
+        <div class="ec-title" style="color:#e67e22">חינה</div>
+        <div class="ec-desc" style="color:#40304a">ארק · וויסקי · וודקה 🔥</div>
+      </div>
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(230,126,34,0.1);display:flex;align-items:center;justify-content:center;color:#e67e22;font-size:13px;flex-shrink:0">›</div>
     </div>""", unsafe_allow_html=True)
-    if st.button("🌙  חינה", key="ev_h", use_container_width=True):
+    st.markdown('<div class="ev-btn">', unsafe_allow_html=True)
+    if st.button("חינה", key="ev_h", use_container_width=True):
         st.session_state.event_type = "henna"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
+    # בר מצווה
     st.markdown("""
-    <div class="event-card ec-bar" style="border-color:rgba(26,107,181,0.2)">
+    <div class="event-card ec-bar" style="border-color:rgba(96,165,250,0.35);margin-bottom:0">
       <div class="ec-icon">🎉</div>
-      <div><div class="ec-title" style="color:#60a5fa">בר / בת מצווה</div>
-      <div class="ec-desc">וויסקי · וודקה · קהל מעורב</div></div>
-      <div class="ec-arrow">›</div>
+      <div style="flex:1">
+        <div class="ec-title" style="color:#60a5fa">בר / בת מצווה</div>
+        <div class="ec-desc" style="color:#203040">הגיע הזמן לחגוג! ✡️</div>
+      </div>
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(96,165,250,0.1);display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:13px;flex-shrink:0">›</div>
     </div>""", unsafe_allow_html=True)
-    if st.button("🎉  בר / בת מצווה", key="ev_b", use_container_width=True):
+    st.markdown('<div class="ev-btn">', unsafe_allow_html=True)
+    if st.button("בר / בת מצווה", key="ev_b", use_container_width=True):
         st.session_state.event_type = "barmitzvah"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── מפריד ──
     st.markdown('''
@@ -899,32 +916,34 @@ st.session_state.couple_name = couple_input
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🎨 סגנון</div>', unsafe_allow_html=True)
 for sk,lbl,desc in [
-    ("חסכוני","💚 חסכוני","Basic — הכי משתלם"),
+    ("חסכוני","💚 חסכוני","Basic בלבד"),
     ("מאוזן","⚖️ מאוזן","Basic + Premium"),
-    ("פרמיום","✨ פרמיום","Premium — מובחר"),
+    ("פרמיום","✨ פרמיום","Premium בלבד"),
 ]:
     is_a   = st.session_state.style == sk
-    border = "var(--gold)" if is_a else "var(--border-dim)"
-    bg     = "rgba(232,201,126,0.08)" if is_a else "var(--bg3)"
-    clr    = "var(--gold)" if is_a else "var(--text-dim)"
-    tick   = "✓" if is_a else ""
+    border = "rgba(232,201,126,0.4)" if is_a else "var(--border-dim)"
+    bg     = "rgba(232,201,126,0.07)" if is_a else "var(--bg3)"
+    clr    = "var(--gold)" if is_a else "var(--text-mid)"
+    clr_d  = "var(--text-dim)" if is_a else "#2a2a2a"
+    tick   = '<span style="color:var(--gold);font-size:.9rem">✓</span>' if is_a else '<span style="color:var(--text-dim);font-size:.9rem">›</span>'
     st.markdown(
         f'<div style="background:{bg};border:1.5px solid {border};border-radius:14px;' +
-        f'padding:.7rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;' +
-        f'align-items:center"><div style="font-size:.88rem;font-weight:700;color:{clr}">{lbl}</div>' +
-        f'<div style="display:flex;align-items:center;gap:.5rem">' +
-        f'<span style="font-size:.72rem;color:var(--text-dim)">{desc}</span>' +
-        f'<span style="color:var(--gold)">{tick}</span></div></div>',
+        f'padding:.8rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;' +
+        f'align-items:center">' +
+        f'<div><div style="font-size:.9rem;font-weight:700;color:{clr}">{lbl}</div>' +
+        f'<div style="font-size:.72rem;color:var(--text-dim);margin-top:.1rem">{desc}</div></div>' +
+        f'{tick}</div>',
         unsafe_allow_html=True
     )
-    st.markdown('<div class="btn-ghost">', unsafe_allow_html=True)
+    st.markdown('<div class="btn-ghost" style="margin-top:-6px;margin-bottom:.2rem">', unsafe_allow_html=True)
     if st.button(lbl, key=f"sty_{sk}", use_container_width=True):
         st.session_state.style = sk; st.session_state.generated = False; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Categories
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown('<div class="panel-title" style="margin-bottom:.4rem">🍾 סוגי אלכוהול</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel-title" style="margin-bottom:.2rem">🍾 סוגי אלכוהול</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem">בחרו מה יוגש באירוע שלכם</div>', unsafe_allow_html=True)
 for cat in ["Vodka","Whiskey","Tequila","Anis"]:
     val = st.toggle(CAT_HE[cat], value=(cat in st.session_state.active_cats), key=f"tog_{cat}")
     if val and cat not in st.session_state.active_cats:
