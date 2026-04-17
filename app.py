@@ -65,6 +65,106 @@ html,body,[class*="css"]{
   -webkit-tap-highlight-color:transparent;
 }
 
+/* ── RTL גלובלי ── */
+.stMarkdown,.stText,.stCaption,p,span,div{direction:rtl;}
+label,.stTextInput label,.stNumberInput label,.stSelectbox label,
+.stToggle label,.stSlider label,.stTextArea label{
+  direction:rtl !important;
+  text-align:right !important;
+  font-size:.85rem !important;
+  color:var(--text-mid) !important;
+  font-family:'Heebo',sans-serif !important;
+  font-weight:500 !important;
+}
+
+/* ── שדות קלט ── */
+input[type="number"],input[type="text"],textarea{
+  direction:rtl !important;
+  text-align:right !important;
+  font-family:'Frank Ruhl Libre',serif !important;
+  font-size:.95rem !important;
+}
+
+/* ── selectbox ── */
+[data-testid="stSelectbox"] > div > div{
+  direction:rtl !important;
+  text-align:right !important;
+  font-family:'Heebo',sans-serif !important;
+}
+
+/* ── toggle RTL ── */
+[data-testid="stToggle"]{
+  direction:rtl !important;
+  flex-direction:row !important;
+  gap:.6rem !important;
+}
+[data-testid="stToggle"] label{
+  font-size:.9rem !important;
+  color:var(--text) !important;
+  font-weight:600 !important;
+}
+
+/* ── number input כפתורי + / - ── */
+[data-testid="stNumberInput"] button{
+  font-size:1rem !important;
+}
+
+/* ── כותרות sec ── */
+.sec{
+  font-family:'Frank Ruhl Libre',serif !important;
+  font-size:1.05rem !important;
+  font-weight:700 !important;
+  color:var(--gold) !important;
+  text-align:right !important;
+  direction:rtl !important;
+  margin-bottom:.5rem !important;
+}
+
+/* ── panel title ── */
+.panel-title{
+  font-family:'Frank Ruhl Libre',serif !important;
+  font-size:1rem !important;
+  font-weight:700 !important;
+  text-align:right !important;
+  direction:rtl !important;
+}
+
+/* ── nbox / ibox / wbox ── */
+.nbox,.ibox,.wbox{
+  direction:rtl !important;
+  text-align:right !important;
+  font-size:.82rem !important;
+}
+
+/* ── metric ── */
+[data-testid="stMetric"]{direction:rtl !important;text-align:right !important;}
+[data-testid="stMetricLabel"]{font-size:.78rem !important;color:var(--text-dim) !important;}
+[data-testid="stMetricValue"]{font-family:'Frank Ruhl Libre',serif !important;font-size:1.4rem !important;}
+
+/* ── expander ── */
+.streamlit-expanderHeader{
+  direction:rtl !important;
+  text-align:right !important;
+  font-family:'Frank Ruhl Libre',serif !important;
+  font-size:.95rem !important;
+  font-weight:700 !important;
+  color:var(--gold) !important;
+}
+
+/* ── caption / help text ── */
+.stCaption,.stHelp,[data-testid="stCaptionContainer"]{
+  direction:rtl !important;
+  text-align:right !important;
+  font-size:.75rem !important;
+  color:var(--text-dim) !important;
+}
+
+/* ── warning / info boxes ── */
+[data-testid="stAlert"]{
+  direction:rtl !important;
+  text-align:right !important;
+}
+
 /* ── Welcome ── */
 .welcome{text-align:center;padding:3rem 1rem 2rem;position:relative;}
 .welcome-glow{
@@ -574,8 +674,7 @@ if not st.session_state.event_type and not st.session_state.tool_type:
     """, unsafe_allow_html=True)
 
     # ── אירועים ──
-    st.markdown('''<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:.5rem">
-        האירוע שלכם</div>''', unsafe_allow_html=True)
+    st.markdown('''<div style="font-family:Frank Ruhl Libre,serif;font-size:.9rem;font-weight:700;color:var(--text-mid);margin-bottom:.6rem;text-align:right;direction:rtl">האירוע שלכם</div>''', unsafe_allow_html=True)
 
     # ── כרטיסי אירוע — כרטיס + כפתור אחד ──
     st.markdown("""
@@ -934,7 +1033,7 @@ for sk,lbl,desc in [
 # Categories
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="panel-title" style="margin-bottom:.2rem">🍾 סוגי אלכוהול</div>', unsafe_allow_html=True)
-st.markdown('<div style="font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem">בחרו מה יוגש באירוע שלכם</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size:.82rem;color:var(--text-dim);margin-bottom:.5rem;text-align:right;direction:rtl">בחרו מה יוגש באירוע שלכם</div>', unsafe_allow_html=True)
 for cat in ["Vodka","Whiskey","Tequila","Anis"]:
     val = st.toggle(CAT_HE[cat], value=(cat in st.session_state.active_cats), key=f"tog_{cat}")
     if val and cat not in st.session_state.active_cats:
@@ -945,7 +1044,7 @@ for cat in ["Vodka","Whiskey","Tequila","Anis"]:
 
 # Hours
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown('<div class="panel-title" style="margin-bottom:.3rem">⏱️ שעות האירוע</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel-title" style="margin-bottom:.3rem;font-size:1rem">⏱️ שעות האירוע</div>', unsafe_allow_html=True)
 h_val = st.session_state.get("hours", 4)
 h_note = "בסיס" if h_val == 4 else f"+{(h_val-4)*15}% כמות"
 st.markdown(f'''<div style="display:flex;align-items:center;gap:.8rem;
